@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 2.0.0-alpha.22
+- 1.fix: 修复 PanoMeasurePlugin disable 状态下仍有背景色占位问题。
+
 ## 2.0.0-alpha.21
 - 1.fix: 修复 PanoMeasurePlugin 仅初始化 UI 面板仍占位为题。
 

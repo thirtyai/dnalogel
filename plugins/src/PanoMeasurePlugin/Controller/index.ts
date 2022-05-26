@@ -58,6 +58,7 @@ export default class MeasureController {
     this.container.style.pointerEvents = 'none'
     this.container.style.width = '100%'
     this.container.style.height = '100%'
+    this.container.style.opacity = '0'
     this.container.style.background = 'rgba(0, 0, 0, 0.15)'
 
     this.controllerParams = {
@@ -104,6 +105,8 @@ export default class MeasureController {
     if (this.hasOpen) return
     this.hasOpen = true
     this.five.scene.add(this.group)
+    // 修改透明度
+    this.container.style.opacity = '1'
     // 隐藏点位和鼠标聚焦环
     this.five.helperVisible = false
     this.controller = new WatchController(this.controllerParams)
@@ -119,6 +122,8 @@ export default class MeasureController {
    */
   public disable(): void {
     this.hasOpen = false
+    // 修改透明度
+    this.container.style.opacity = '0'
     // 展示点位和鼠标聚焦环
     this.controller?.dispose()
     this.useUIController?.hide()

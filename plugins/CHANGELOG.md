@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 2.0.0-alpha.25
+- 1.refactor: 恢复发版
+
 ## 2.0.0-alpha.24
 - 1.feat: PanoRulerPlugin 支持数据 reload。
 

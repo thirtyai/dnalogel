@@ -1,7 +1,11 @@
 # CHANGELOG
 
+## 2.0.0-alpha.32
+- 1.feat: PanoRulerPlugin 修改标尺隐藏策略，线长小于0.3m隐藏；
+- 2.fix: TopViewFloorplanPlugin & ModelFloorplanPlugin wrapper pointer-events: none。
+
 ## 2.0.0-alpha.31
-- 1.fix: PanoRulerPlugin 修改标尺隐藏策略，线长小于0.3m隐藏
+- 1.fix: 修复 ?? 语法在 svelte 中不编译的问题。
 
 ## 2.0.0-alpha.30
 - 1.feat: PanoMeasurePlugin 新增移动端UI交互模式

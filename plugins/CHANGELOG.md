@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2.0.0-alpha.35
+- 1.style: PanoSpatialTagPlugin标签样式兼容, 标签阴影背景自适应；
+- 2.feat: PanoSpatialTagPlugin开放可见距离配置参数，此功能不保证最佳UI效果）;
+- 3.refactor: PanoSpatialTagPlugin更新中心点位置及事件监听。
+
 ## 2.0.0-alpha.34
 - 1.feat: 新增 PaintBrush 组件，此版本为实验版，请谨慎使用。
 

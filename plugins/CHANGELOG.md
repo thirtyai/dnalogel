@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 2.0.0-alpha.38
+- 1.feat: 新增 PanoRulerProPlugin。
+
 ## 2.0.0-alpha.37
 - 1.feat: 参考 plugins/src/floorplan/CHANGELOG.md v1.0.1
 

@@ -17,6 +17,7 @@
 
     export let five: Five
     export let modelOcclusionEnable: boolean
+    export let onlyVisibleInPanorama: boolean
     export let itemLabels: ItemLabel[]
     export let hooks: Subscribe<PluginEvent>
     export let displayStrategyType: ITEM_LABEL_PLUGIN_DISPLAY_STRATEGY_TYPE
@@ -70,6 +71,7 @@
         const ratioFromTop = (2 - (offsetYFromCenter + 1)) / 2
         const isFront = Math.abs(offsetZFromCenter) < 1
         const cssOffset = [ratioFromLeft, ratioFromTop]
+	    // 只计算在前面就行
         const isInViewport = isFront && cssOffset.every((ratio) => ratio < 1 && ratio >= 0)
 
         return Boolean(isInViewport)
@@ -101,6 +103,11 @@
     const getFormatedItemLabels = (five: Five, labels: ItemLabel[]) => {
         // 计算位置 & 可见性
         const newLabels = labels.map(label => {
+            // 不在绑定点位则直接不可见
+	        if (five.state.panoIndex !== label.panoIndex) {
+                return { ...label, visible: false }
+	        }
+
             const cssOffset = getLabelCssOffset(five, label)
             const curLabelWidth = label.name.length * basicWidth
             const strokeLength = getStrokeLength(label.modelPosition[1], displayStrategyType)
@@ -223,10 +230,9 @@
         if (five.state.mode === Five.Mode.Panorama) return
 
         const observers = five.work.observers
-        const fromPositionVector = new Vector3(itemLabel.position[0], itemLabel.position[1], itemLabel.position[2])
+        const fromPositionVector = new Vector3().fromArray(itemLabel.position)
         const observer = getNearObserverPano(fromPositionVector, observers)
         if (observer) {
-            console.log('--has observer--')
             itemLabel.observerIndex = observer.panoIndex
         }
 
@@ -277,12 +283,12 @@
         addResizeListener()
 
         five.on('cameraUpdate', handleCameraUpdateCallback)
-        five.on('modeChange', onFiveModeChange)
+        // five.on('modeChange', onFiveModeChange)
     })
 
     onDestroy(() => {
         five.off('cameraUpdate', handleCameraUpdateCallback)
-        five.off('modeChange', onFiveModeChange)
+        // five.off('modeChange', onFiveModeChange)
         window.removeEventListener('resize', onResize, false)
     })
 

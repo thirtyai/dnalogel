@@ -12,12 +12,14 @@ export enum ITEM_LABEL_PLUGIN_DISPLAY_STRATEGY_TYPE {
 export interface  ItemLabelPluginParametersType {
     maxVisibleDistance?: number
     modelOcclusionEnable?: boolean
+    onlyVisibleInPanorama?: boolean
     displayStrategyType?: Partial<ITEM_LABEL_PLUGIN_DISPLAY_STRATEGY_TYPE>
 }
 
 // 插件 load 数据
 export interface  ItemLabelPluginData {
     item_labels: Readonly<{
+        panoIndex: number,
         id: string,
         code: string,
         name: string
@@ -30,6 +32,7 @@ export interface  ItemLabelPluginData {
 
 // 插件内部 render 数据
 export interface ItemLabel {
+    panoIndex: number
     id: string
     code: string
     name: string
@@ -64,6 +67,7 @@ export interface ItemLabelPluginState {
     app?: ItemLabelComponent | undefined
     hooks: Subscribe<PluginEvent>
     modelOcclusionEnable: boolean
+    onlyVisibleInPanorama: boolean
     displayStrategyType: Partial<ITEM_LABEL_PLUGIN_DISPLAY_STRATEGY_TYPE>
     maxVisibleDistance: number | undefined
 }

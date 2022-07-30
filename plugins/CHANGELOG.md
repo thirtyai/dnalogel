@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 2.0.0-alpha.39
+- 1.feat: 更新 ItemLabelPlugin 策略，仅在全景模态下展示。
+
 ## 2.0.0-alpha.38
 - 1.feat: 新增 PanoRulerProPlugin。
 

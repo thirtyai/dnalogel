@@ -41,3 +41,5 @@ export * from './ModelTVVideoPlugin'
 
 // 物品标签
 export * from './ItemLabelPlugin'
+
+export const DnalogelVersion = '2.0.0-alpha.38'

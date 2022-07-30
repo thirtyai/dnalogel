@@ -29,6 +29,7 @@ export const Plugin: FivePlugin<ItemLabelPluginParametersType,
         app: undefined,
         hooks: new Subscribe<PluginEvent>(),
         modelOcclusionEnable: params?.modelOcclusionEnable ?? true,
+        onlyVisibleInPanorama: params?.onlyVisibleInPanorama ?? true,
         displayStrategyType: params?.displayStrategyType ?? ITEM_LABEL_PLUGIN_DISPLAY_STRATEGY_TYPE.SMALL,
         maxVisibleDistance: params?.maxVisibleDistance ?? defaultMaxVisibleDistance,
     }
@@ -90,6 +91,7 @@ export const Plugin: FivePlugin<ItemLabelPluginParametersType,
                 props: {
                     five: five,
                     modelOcclusionEnable: pluginState.modelOcclusionEnable,
+                    onlyVisibleInPanorama: pluginState.onlyVisibleInPanorama,
                     itemLabels: pluginState.itemLabels,
                     wrapper: pluginState.wrapper,
                     hooks: pluginState.hooks,
@@ -107,24 +109,30 @@ export const Plugin: FivePlugin<ItemLabelPluginParametersType,
 
     // 添加 five 监听
     const addListener4Five = () => {
-        // five.on('modeChange', onFiveModeChange)
+        five.on('modeChange', onFiveModeChange)
         five.once('dispose', dispose)
     }
 
     // 取消 five 监听
     const removeListener4Five = () => {
-        // five.off('modeChange', onFiveModeChange)
+        five.off('modeChange', onFiveModeChange)
     }
 
     const onFiveModeChange = (mode: Mode) => {
-        if (!pluginState.enabled) return
+        // if (!pluginState.enabled) return
 
-        pluginState.fiveModeEnabled = false
-        render()
+        if (mode !== Five.Mode.Panorama) {
+            pluginState.fiveModeEnabled = false
+            disable()
+            return
+        }
+
+        // pluginState.fiveModeEnabled = false
+        // render()
 
         five.once('initAnimationEnded', () => {
             pluginState.fiveModeEnabled = true
-            render()
+            enable()
         })
     }
 

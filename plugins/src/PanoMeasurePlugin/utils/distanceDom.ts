@@ -4,7 +4,7 @@ import type { LineCompletelyJson, PolylineCompletelyJson } from '../typings/data
 import { Vector2, Vector3 } from 'three'
 import isNDCPointInScreen from './isNDCPointInScreen'
 
-export type DistanceItem = ReturnType<typeof creatDistanceItem>
+export type DistanceItem = ReturnType<typeof createDistanceItem>
 
 export interface UserDistanceItem {
   element: Element
@@ -19,7 +19,7 @@ export interface IDistanceItemProps {
   clickCallback?: (item: DistanceItem) => unknown
 }
 
-function creatContentDom() {
+function createContentDom() {
   const contentDom = document.createElement('div')
   contentDom.setAttribute('style', `backdrop-filter: blur(4px);-webkit-backdrop-filter: blur(4px);`)
   contentDom.style.padding = '3px 6px'
@@ -50,7 +50,7 @@ function createContainerDom(line: Line) {
   return containerDom
 }
 
-export function creatDistanceItem(props: IDistanceItemProps) {
+export function createDistanceItem(props: IDistanceItemProps) {
   function handleClick() {
     // 线被选中时才高亮，外部手动触发高亮
     // highlight()
@@ -122,7 +122,7 @@ export function creatDistanceItem(props: IDistanceItemProps) {
 
   const { line } = props
   const lineID = line.id
-  const contentDom = creatContentDom()
+  const contentDom = createContentDom()
   const containerDom = createContainerDom(line)
   const userDistanceItem = props.userDistanceItem
   const ndcPosition = new Vector3(0, 0, 0)

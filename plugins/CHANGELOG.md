@@ -1,7 +1,7 @@
 # CHANGELOG
 
 ## 2.0.0-alpha.40
-- 1.feat:  PanoMeasurePlugin 添加 View Mode,支持用户仅预览和点击高亮。
+- 1.refactor: PanoMeasurePlugin: 添加 View Mode，支持用户仅预览和点击高亮。
 
 ## 2.0.0-alpha.39
 - 1.feat: 更新 ItemLabelPlugin 策略，仅在全景模态下展示。

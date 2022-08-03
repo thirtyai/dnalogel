@@ -5,6 +5,7 @@ import type { UserDistanceItem } from '../utils/distanceDom'
 import Magnifier, { MagnifierParameter } from '../Modules/Magnifier'
 import FiveHelper from '../Modules/FiveHelper'
 import EditController from './EditController'
+import ViewController from './ViewController'
 import WatchController from './WatchController'
 import MixedController from './MixedController'
 import { Group } from 'three'
@@ -17,7 +18,7 @@ import { ShortcutKeyController } from './ShortcutKeyController'
 import RangePieceController from '../Modules/rangePiece'
 
 // 新增Mixed模式专用于mobile端
-export type Mode = 'Watch' | 'Edit' | 'Mixed'
+export type Mode = 'Watch' | 'Edit' | 'Mixed' | 'View'
 
 // 参数
 export interface PanoMeasureParameterType {
@@ -44,7 +45,7 @@ export default class MeasureController {
   private rangePieceController?: RangePieceController
   private container = document.createElement('div')
   private shortcutKeyController?: ShortcutKeyController
-  private controller: WatchController | EditController | MixedController | null = null
+  private controller: WatchController | EditController | MixedController | ViewController | null = null
   private controllerParams: ConstructorParameters<typeof BaseController>[0]
 
   public constructor(five: Five, params: PanoMeasureParameterType) {
@@ -170,6 +171,7 @@ export default class MeasureController {
     if (this.getCurrentMode() === 'Mixed' || mode === 'Mixed') return new Error('不支持切换的Mode')
     this.controller?.dispose()
     const controllerMap = {
+      View: ViewController,
       Watch: WatchController,
       Edit: EditController,
     }

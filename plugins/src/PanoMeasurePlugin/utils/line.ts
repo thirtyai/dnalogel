@@ -5,7 +5,7 @@ import { Color, PointsMaterial, Texture, Vector3 } from 'three'
 
 type ISetMaterialOpts = Parameters<FiveLine['setMaterial']>[0]
 
-export interface ICreatLineOpts extends ISetMaterialOpts {
+export interface ICreateLineOpts extends ISetMaterialOpts {
   hasPoint?: boolean
   pointSize?: number
   lineWidth?: number
@@ -16,7 +16,7 @@ export interface ICreatLineOpts extends ISetMaterialOpts {
   pointColor?: Color | string | number
 }
 
-export function creatLine(start: Vector3, end: Vector3, opts?: ICreatLineOpts) {
+export function createLine(start: Vector3, end: Vector3, opts?: ICreateLineOpts) {
   const lineWidth = opts?.lineWidth ?? 2
   const lineColor = opts?.lineColor ?? (new Color(0xffffff) as any)
   const pointSize = opts?.pointSize ?? 5
@@ -38,10 +38,10 @@ export function creatLine(start: Vector3, end: Vector3, opts?: ICreatLineOpts) {
   return line
 }
 
-export function creatLineMesh(line: Line, type: 'normal' | 'light') {
+export function createLineMesh(line: Line, type: 'normal' | 'light') {
   const [point, anotherPoint] = line.points
   const opts = type === 'light' ? lightLineOpts : normalLineOpts
-  const fiveLine = creatLine(point.position, anotherPoint.position, opts)
+  const fiveLine = createLine(point.position, anotherPoint.position, opts)
   fiveLine.name = 'normalLine_' + line.id
   return fiveLine
 }

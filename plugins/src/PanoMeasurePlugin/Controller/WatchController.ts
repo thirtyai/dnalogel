@@ -55,6 +55,7 @@ export default class WatchController extends BaseController {
     super.dispose()
     this.deleteDom.dispose()
     this.model.hook.off('lineRemoved', this.lineRemoved)
+    this.model.lines.forEach((line) => line.hook.off('selected', this.chooseLine))
     this.five.off('cameraUpdate', this.onCameraUpdate)
     this.five.off('wantsPanGesture', this.wantsPanGesture)
     this.five.off('wantsTapGesture', this.wantsTapGesture)
@@ -176,8 +177,14 @@ export default class WatchController extends BaseController {
         const ndcStartPoint = startPoint.position.clone().project(camera)
         const ndcEndPoint = endPoint.position.clone().project(camera)
         if (!isNDCPointInScreen(ndcStartPoint) && !isNDCPointInScreen(ndcEndPoint)) return null
-        const startScreenPosition = new Vector2(ndcStartPoint.x * screenWidth, ndcStartPoint.y * screenHeight)
-        const endScreenPosition = new Vector2(ndcEndPoint.x * screenWidth, ndcEndPoint.y * screenHeight)
+        const startScreenPosition = new Vector2(
+          ndcStartPoint.x * screenWidth,
+          ndcStartPoint.y * screenHeight,
+        )
+        const endScreenPosition = new Vector2(
+          ndcEndPoint.x * screenWidth,
+          ndcEndPoint.y * screenHeight,
+        )
         return { id: line.id, points: [startScreenPosition, endScreenPosition] }
       })
       .filter((line) => !!line) as { id: string; points: Vector2[] }[]

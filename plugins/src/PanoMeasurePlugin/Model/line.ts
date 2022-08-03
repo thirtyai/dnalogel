@@ -5,9 +5,9 @@ import type { LineCompletelyJson } from '../typings/data'
 import type { Line as FiveLine } from '@realsee/five/line'
 import uuid from '../../shared-utils/uuid'
 import { Polyline } from './polyline'
-import { creatLineMesh } from '../utils/line'
+import { createLineMesh } from '../utils/line'
 import { Subscribe, SubscribeEventMap } from '@realsee/five'
-import { creatDistanceItem, DistanceItem } from '../utils/distanceDom'
+import { createDistanceItem, DistanceItem } from '../utils/distanceDom'
 
 export interface ILineHook extends SubscribeEventMap {
   selected: (line: Line) => void
@@ -33,9 +33,9 @@ export default class Line {
 
     this.hook = new Subscribe<ILineHook>()
     this.points = [point, anotherPoint]
-    this.mesh = creatLineMesh(this, 'normal')
-    this.lightMesh = creatLineMesh(this, 'light')
-    this.distanceItem = creatDistanceItem({
+    this.mesh = createLineMesh(this, 'normal')
+    this.lightMesh = createLineMesh(this, 'light')
+    this.distanceItem = createDistanceItem({
       line: this,
       clickCallback: () => this.hook.emit('selected', this),
       userDistanceItem: this.model.params.userDistanceItemCreator

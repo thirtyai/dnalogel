@@ -1,4 +1,4 @@
-import type { ICreatLineOpts } from './line'
+import type { ICreateLineOpts } from './line'
 import { TextureLoader, Color } from 'three'
 
 const lineWidth = 1
@@ -14,7 +14,7 @@ const pointImage =
   'iVBORw0KGgoAAAANSUhEUgAAACAAAAAgBAMAAACBVGfHAAAAIVBMVEUAAAD////////////////////////////////////////PIev5AAAACnRSTlMAG/Py2baba05un7UgfgAAAHJJREFUKM9joBpgLHVSCRdA4metAoJlCJHmVWBgAeNzroKCCVCBLpjACqgJVjCBxRBT2FbBQQJYQAohsBAsUIUQWA4WiEIILAULeCEEloAFtBACizAEMLRgGIphLabDMJ2O6TlM72MGECIIMQIZIxqoBQCPvpJ/e9FaAAAAAABJRU5ErkJggg=='
 const pointTexture = new TextureLoader().load(pointImage)
 
-export const normalLineOpts: ICreatLineOpts = {
+export const normalLineOpts: ICreateLineOpts = {
   pointTexture,
   pointSize,
   lineWidth,
@@ -24,9 +24,9 @@ export const normalLineOpts: ICreatLineOpts = {
   pointsRenderOrder: 20,
 }
 
-export const dashLineOpts: ICreatLineOpts = { ...normalLineOpts, dashed: true }
+export const dashLineOpts: ICreateLineOpts = { ...normalLineOpts, dashed: true }
 
-export const lightLineOpts: ICreatLineOpts = {
+export const lightLineOpts: ICreateLineOpts = {
   pointTexture,
   pointSize: lightPointSize,
   lineWidth: lightLineWidth,

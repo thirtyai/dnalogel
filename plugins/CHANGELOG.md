@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 2.0.0-alpha.41
+- 1.feat: 40版本漏发。
+
 ## 2.0.0-alpha.40
 - 1.refactor: PanoMeasurePlugin: 添加 View Mode，支持用户仅预览和点击高亮。
 

@@ -1,15 +1,14 @@
-import PanoCompassPlugin from './Plugin'
+import type { FivePlugin } from '@realsee/five'
+import { PanoCompassController } from './Controller'
+import type { PanoCompassPluginParameterType } from './typings'
 
-export { PanoCompassPlugin }
+export type PanoCompassPluginExportType = PanoCompassController
+
+export const PanoCompassPlugin: FivePlugin<
+  PanoCompassPluginParameterType,
+  PanoCompassPluginExportType
+> = (five, config) => new PanoCompassController(five, config)
+
 export default PanoCompassPlugin
 
-export type {
-    PanoCompassPluginParameterType,
-    PanoCompassPluginData,
-    PanoCompassPluginExportType
-} from './Plugin'
-
-export const panoCompassPluginServerParams = {
-    name: 'PanoCompassPlugin',
-    version: 0,
-}
+export type { PanoCompassPluginParameterType } from './typings'

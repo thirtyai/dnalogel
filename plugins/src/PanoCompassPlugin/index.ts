@@ -11,4 +11,4 @@ export const PanoCompassPlugin: FivePlugin<
 
 export default PanoCompassPlugin
 
-export type { PanoCompassPluginParameterType } from './typings'
+export type { PanoCompassPluginParameterType, PanoCompassPluginData } from './typings'

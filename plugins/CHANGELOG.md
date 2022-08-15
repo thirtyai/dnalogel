@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 2.0.0-alpha.43
+- 1.fix: PanoCompassPluginData 导出
+
 ## 2.0.0-alpha.42
 - 1.fix: PanoCompassPlugin未完全dispose导致切换VR重新加载数据出现异常。
 - 2.fix: PanoCompassPlugin在five切换全景与模型，入户门与分间指向错位的问题。

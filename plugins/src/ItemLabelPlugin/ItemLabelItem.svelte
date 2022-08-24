@@ -104,9 +104,12 @@
     }
 
     .item-label-item__custom {
-        padding: 12px;
+        padding: 0;
         max-width: unset;
         min-height: unset;
+        background-image: unset;
+        border: 0;
+        border-radius: 0;
     }
 
     .icon-wrap {

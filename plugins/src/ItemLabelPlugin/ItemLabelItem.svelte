@@ -15,27 +15,45 @@
         hooks.emit('onLabelClick', itemLabel)
     }
 
+    let customElement:HTMLDivElement
+
+    $: {
+        if ( typeof itemLabel.render === 'function' && customElement) {
+            if (customElement.children.length === 0) {
+                const child = itemLabel.render(itemLabel)
+                if (child) {
+                    customElement.appendChild(child)
+                }
+            }
+        }
+    }
+
 </script>
 
 <div class={classNames("item-label-item", { fold: itemLabel.isFold })}
      style:z-index="{itemLabel.zIndex}"
      style:transform="{itemLabel.transform}"
 >
-	<div class={classNames("item-label-item__text-wrap")}
+	<div class={classNames("item-label-item__text-wrap", { 'item-label-item__custom': Boolean(typeof itemLabel.render === 'function') })}
 	     style="bottom: {`${itemLabel.strokeLength}px`}"
 	     on:click="{onClick}"
 	>
-		{#if itemLabel.icon}
-			<div class="icon-wrap"
-			     on:click="{(e) => onIconClick(itemLabel)}"
-			>
-				<div class="icon" style={`background-image: url(${itemLabel.icon})`} ></div>
-			</div>
-		{/if}
-		<div class="item-label-text">
-			<span class="item-model">{itemLabel.code || itemLabel.id}</span>
-			<span class="item-name">{itemLabel.name}</span>
-		</div>
+        {#if Boolean(typeof itemLabel.render === 'function')}
+            <div bind:this={customElement}></div>
+        {:else}
+            {#if itemLabel.icon}
+                <div class="icon-wrap"
+                    on:click="{(e) => onIconClick(itemLabel)}"
+                >
+                    <div class="icon" style={`background-image: url(${itemLabel.icon})`} ></div>
+                </div>
+            {/if}
+            <div class="item-label-text">
+                <span class="item-model">{itemLabel.code || itemLabel.id}</span>
+                <span class="item-name">{itemLabel.name}</span>
+            </div>
+        {/if}
+		
 	</div>
 	<div class={classNames("item-label-item__bar", { anchor: anchorEnabled })}
 	     style="height: {`${itemLabel.strokeLength}px`}">
@@ -83,6 +101,12 @@
         box-sizing: border-box;
         overflow: hidden;
         pointer-events: all;
+    }
+
+    .item-label-item__custom {
+        padding: 12px;
+        max-width: unset;
+        min-height: unset;
     }
 
     .icon-wrap {

@@ -26,6 +26,7 @@ export interface  ItemLabelPluginData {
         position: [number, number, number]
         type?: string[],
         icon?: string,
+        render?: (data: ItemLabel) => HTMLDivElement
         [key: string]: any
     }>[]
 }
@@ -43,6 +44,7 @@ export interface ItemLabel {
     observerIndex?: number | undefined
     visible?: boolean,
     isFold?: boolean,
+    render?: (data: ItemLabel) => HTMLDivElement
     [key: string]: any
 }
 

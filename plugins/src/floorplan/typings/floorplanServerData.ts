@@ -187,7 +187,10 @@ export interface FloorplanServerRoomItem {
   observer_indexs: number[]
 }
 
-export type FloorplanServerRuleLabels = Record<'top' | 'right' | 'bottom' | 'left', FloorplanServerPosition[][]>
+export type FloorplanServerRuleLabels = Record<
+  'top' | 'right' | 'bottom' | 'left',
+  FloorplanServerPosition[][]
+>
 
 /** 当前楼层的数据 */
 export interface FloorplanServerFloorData {
@@ -208,11 +211,26 @@ export interface FloorplanServerObserver {
   position_in_image: FloorplanServerImagePosition
 }
 
+export interface FloorplanServerDoorPosition {
+  x: number
+  y: number
+  z: number
+}
+
+export interface FloorplanServerDoorItem {
+  id: string
+  localName: string
+  name: string
+  position: FloorplanServerDoorPosition
+  rad: number
+}
+
 export interface FloorplanServerComputedData {
   floor_datas: FloorplanServerFloorData[]
   entrance: FloorplanServerEntrance | null
   bounding: FloorplanServerBounding
   observers: FloorplanServerObserver[]
+  doors: FloorplanServerDoorItem[]
 }
 
 /** 原始输入的户型图数据 */

@@ -20,8 +20,8 @@ export class PanoDoorLabelPluginController extends BasePanoPluginController<
   State,
   EventMap<State>
 > {
-  private MinVisibledistance = 1.8
-  private MaxVisibledistance = 6
+  private MinVisibledistance = 2.3
+  private MaxVisibledistance = 5
   private OffsetHeight = -1.3 // 标签页面高度偏移值
   private rooms!: FloorplanServerRoomItem[]
   private floorplanServerData: FloorplanServerData
@@ -268,14 +268,14 @@ export class PanoDoorLabelPluginController extends BasePanoPluginController<
   }
 
   private onClick = (roomName: string, position: Vector3) => {
-    if (!this.rooms) return
+    if (!this.roomObservers) return
     const { work } = this.five
 
     let nearestIndex
     let nearestVector
     let minDistance = Infinity
     for (let index = 0; index < work.observers.length; index++) {
-      if (this.rooms[index].name !== roomName) continue
+      if (this.roomObservers[index].name !== roomName) continue
       const observer = work.observers[index]
       const observerPoint = observer.standingPosition
       const distance = position.distanceTo(observerPoint)

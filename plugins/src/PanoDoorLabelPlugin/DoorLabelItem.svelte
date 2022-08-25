@@ -42,7 +42,7 @@
   >
     <div
       class="{classnames('plugin-DoorLabelPlugin-cnt', props.toward)}"
-      style="{`transform: ${transform || 'initial'};pointerEvents: ${
+      style="{`transform: ${transform || 'initial'};pointer-events: ${
         inSight ? 'auto' : 'none'
       };opacity: ${inSight ? 1 : 0}`}"
       data-camera-toward="{cameraToward}"
@@ -71,7 +71,7 @@
     position: absolute;
     top: 50%;
     left: 50%;
-    border-radius: 0.125rem;
+    border-radius: 2px;
     background: rgba(0, 0, 0, 0.35);
     line-height: 12px;
     padding: 6px;
@@ -93,7 +93,7 @@
       left: -1px;
       bottom: -1px;
       right: -1px;
-      border-radius: 0.125rem;
+      border-radius: 2px;
       border: 1px solid rgba(0, 0, 0, 0);
       border-image: url('//vrlab-image4.ljcdn.com/release/web/highlightCarouseal-border-image.14b51834.png')
         4;

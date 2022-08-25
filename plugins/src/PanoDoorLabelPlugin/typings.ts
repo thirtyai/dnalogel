@@ -35,3 +35,9 @@ export interface NeverOverlapLabel {
   index: number
   transform?: string
 }
+
+export interface DoorLabelConfig {
+  MinVisibledistance: number
+  MaxVisibledistance: number
+  OffsetHeight: number
+}

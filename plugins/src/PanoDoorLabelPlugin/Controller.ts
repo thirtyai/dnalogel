@@ -7,7 +7,7 @@ import type {
 import { Euler, Quaternion, Raycaster, Vector3 } from 'three'
 import { BasePanoPluginController } from './BaseController'
 import DoorLabelItem from './DoorLabelItem.svelte'
-import type { DoorLabel, LabelItemProp, NeverOverlapLabel } from './typings'
+import type { DoorLabel, DoorLabelConfig, LabelItemProp, NeverOverlapLabel } from './typings'
 import { getCameraToward, getDistance, getToward, isTwoRectOverlaped } from './utils'
 
 const defaultBaseOptions: BaseOptions = { userAction: true }
@@ -20,7 +20,7 @@ export class PanoDoorLabelPluginController extends BasePanoPluginController<
   State,
   EventMap<State>
 > {
-  private MinVisibledistance = 2.3
+  private MinVisibledistance = 1.8
   private MaxVisibledistance = 5
   private OffsetHeight = -1.3 // 标签页面高度偏移值
   private rooms!: FloorplanServerRoomItem[]
@@ -43,7 +43,15 @@ export class PanoDoorLabelPluginController extends BasePanoPluginController<
     super(five)
   }
 
-  public loadData = (floorplanServerData: FloorplanServerData) => {
+  public loadData = (
+    floorplanServerData: FloorplanServerData,
+    doorLabelConfig?: DoorLabelConfig,
+  ) => {
+    if (doorLabelConfig) {
+      this.MaxVisibledistance = doorLabelConfig.MaxVisibledistance
+      this.MinVisibledistance = doorLabelConfig.MinVisibledistance
+      this.OffsetHeight = doorLabelConfig.OffsetHeight
+    }
     if (this.doorLabelItems && this.doorLabelItems.length > 0) {
       this.doorLabelItems.forEach((doorItem) => {
         doorItem.$destroy()

@@ -260,9 +260,9 @@ export const ModelTVVideoPlugin: FivePlugin<ModelTVVideoPluginParameterType, Mod
 
     five.on('wantsTapGesture', (raycaster) => {
         if (!state.enabled) return
-        const targetMesh = five.scene.children.find(item => /^ModelTVVideoPlugin/.test(item.name))
+        const targetMesh = five.scene.children.filter(item => /^ModelTVVideoPlugin/.test(item.name))
         if (!targetMesh) return
-        const intersectObjects = raycaster.intersectObjects([targetMesh])
+        const intersectObjects = raycaster.intersectObjects(targetMesh)
         if (intersectObjects.length === 0) return
         if(state.videoTexture) setMuted(!state.videoTexture.image.muted) // TODO  toggle video play
         return false

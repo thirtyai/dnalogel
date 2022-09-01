@@ -45,4 +45,4 @@ export * from './ItemLabelPlugin'
 // 分间标签
 export * from './PanoDoorLabelPlugin'
 
-export const DnalogelVersion = '2.0.0-alpha.43'
+export const DnalogelVersion = '2.0.0-alpha.49'

@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 2.0.0-alpha.49
+- 1.fix: ModelTVVideoPlugin 多点位视频播放。
+
 ## 2.0.0-alpha.43
 - 1.fix: PanoCompassPluginData 导出
 

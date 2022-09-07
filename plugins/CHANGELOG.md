@@ -1,5 +1,9 @@
 # CHANGELOG
 
+
+## 2.0.0-alpha.49
+- 1.feat: MapviewFloorplanPlugin): 添加大空间户型图插件
+
 ## 2.0.0-alpha.49
 - 1.fix: ModelTVVideoPlugin 多点位视频播放。
 

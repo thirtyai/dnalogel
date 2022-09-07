@@ -45,4 +45,10 @@ export * from './ItemLabelPlugin'
 // 分间标签
 export * from './PanoDoorLabelPlugin'
 
+// 路线引导Mesh
+export * from './GuideLinePlugin'
+
+// 漫游插件
+export * from './CruisePlugin'
+
 export const DnalogelVersion = '2.0.0-alpha.49'

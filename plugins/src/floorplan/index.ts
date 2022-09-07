@@ -1,11 +1,13 @@
 // floorplan
 export * from './constant'
 
+export * from './ModelFloorplanPlugin'
+
+export * from './MapviewFloorplanPlugin'
+
 export * from './TopviewFloorplanPlugin'
 
 export * from './PanoFloorplanRadarPlugin'
-
-export * from './ModelFloorplanPlugin'
 
 export * from './typings/floorplanServerData'
 

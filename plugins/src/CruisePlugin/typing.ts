@@ -4,7 +4,7 @@ import type * as BasePluginWithData from '../base/BasePluginWithData'
 
 type FivePoseAndState = Partial<Pose> & Partial<State>
 
-type MoveEffect = MovePanoOptions['effect']
+export type MoveEffect = MovePanoOptions['effect']
 
 export type CruiseData = {
   /** 移动/旋转 */
@@ -20,6 +20,8 @@ export type CruiseData = {
 export interface CruiseKeyframe {
   id: string
   index: number
+  moveIndex: number
+  stay?: number
   start?: number
   end?: number
   data: CruiseData
@@ -46,14 +48,22 @@ export interface PluginServerData extends BasePluginWithData.ServerData {
         moveEffect?: undefined
         /** for ts check, no care */
         moveType?: undefined
+        /** for ts check, no care */
+        moveToFirstPanoEffect?: undefined
+        /** for ts check, no care */
+        stay?: undefined
       }
     | {
         /** 点位列表 */
         panoIndexList: number[]
         /** five走点动画 */
         moveEffect?: MoveEffect
+        /** 到第一个点的走点动画 / 续播到暂停处的走点动画 */
+        moveToFirstPanoEffect?: MoveEffect
         /** 漫游方式：justMove 为移动到指定点位，且朝向为下一个点的朝向；moveAndRotate 为先移动到指定点位且朝向不变，然后旋转到下一个点的朝向 */
         moveType?: 'justMove' | 'moveAndRotate'
+        /** 停留时长 */
+        stay?: number
         /** for ts check, no care */
         keyframes?: undefined
       }

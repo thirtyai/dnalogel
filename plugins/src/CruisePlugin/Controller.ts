@@ -3,15 +3,16 @@ import type { BaseOptions } from '../base/BasePlugin'
 import * as BasePluginWithData from '../base/BasePluginWithData'
 import { GuideLinePlugin, GuideLinePluginExportType } from '../GuideLinePlugin'
 import uuid from '../shared-utils/uuid'
-import type { PluginState, EventMap, PluginServerData, PluginData, CruiseData, CruiseKeyframe } from './typing'
+import type { PluginState, EventMap, PluginServerData, PluginData, CruiseData, CruiseKeyframe, MoveEffect } from './typing'
 import { coordinatesAngle } from './utils/coordinatesAngle'
 import { safeCall } from './utils/safeCall'
 import equal from '../shared-utils/equal'
 import { vectorToCoordinates } from './utils/vectorToCoordinates'
 import * as THREE from 'three'
 import linerValue from './utils/linerValue'
+import { sleep } from './utils/sleep'
 
-const VERSION = 'v1.0.5'
+const VERSION = 'v1.0.6'
 
 const PLUGIN_NAME = 'CruisePlugin'
 
@@ -46,7 +47,7 @@ export default class CruisePluginController extends BasePluginWithData.Controlle
       speedConfig: {
         rotateSpeed: 0.001,
         rotateSpeedUnit: 'rad/ms',
-        moveSpeed: 0.003,
+        moveSpeed: 0.002,
         moveSpeedUnit: 'm/ms',
       },
     },
@@ -70,6 +71,7 @@ export default class CruisePluginController extends BasePluginWithData.Controlle
     broke: boolean
     disposers: (() => void)[]
     playId?: string
+    moveToFirstPanoEffect?: MoveEffect
   } = {
     playing: false,
     currentPlayQueue: [],
@@ -283,11 +285,20 @@ export default class CruisePluginController extends BasePluginWithData.Controlle
     if (data.keyframes) {
       return {
         keyframesId: uuid(),
-        keyframes: data.keyframes.map((keyframe, index) => ({ id: keyframe.uuid ?? uuid(), index, ...keyframe })),
+        keyframes: data.keyframes.map((keyframe, index) => {
+          const nextKeyframe = data.keyframes[index + 1]
+          const stay = (() => {
+            if (!nextKeyframe) return 0
+            if (nextKeyframe.start === undefined || keyframe.end === undefined) return 0
+            return nextKeyframe.start - keyframe.end
+          })()
+          return { id: keyframe.uuid ?? uuid(), moveIndex: index, stay, index, ...keyframe }
+        }),
       }
     } else if (data.panoIndexList) {
       let keyframes: Omit<CruiseKeyframe, 'index' | 'id'>[] = []
-      const moveEffect = data.moveEffect
+      const { moveEffect, moveToFirstPanoEffect } = data
+      this.privateState.moveToFirstPanoEffect = moveToFirstPanoEffect
       data.panoIndexList
         .filter((panoIndex, index) => panoIndex !== data.panoIndexList[index - 1])
         .forEach((panoIndex, index) => {
@@ -304,11 +315,16 @@ export default class CruisePluginController extends BasePluginWithData.Controlle
           })()
           if (data.moveType === undefined || data.moveType === 'justMove') {
             // move to panoIndex, latitude, longitude
-            keyframes.push({ data: { effect: 'Move', panoIndex, moveEffect, ...(lookatNextPanoIndex ?? {}) } })
+            keyframes.push({
+              moveIndex: index,
+              stay: data.stay,
+              data: { effect: 'Move', panoIndex, moveEffect, ...(lookatNextPanoIndex ?? {}) },
+            })
           } else if (data.moveType === 'moveAndRotate') {
             // move to panoIndex, then rotate to latitude and longitude
-            keyframes.push({ data: { effect: 'Move', panoIndex, moveEffect } })
-            if (lookatNextPanoIndex) keyframes.push({ data: { effect: 'Rotate', panoIndex, ...lookatNextPanoIndex } })
+            keyframes.push({ moveIndex: index, stay: data.stay, data: { effect: 'Move', panoIndex, moveEffect } })
+            if (lookatNextPanoIndex)
+              keyframes.push({ moveIndex: index, stay: data.stay, data: { effect: 'Rotate', panoIndex, ...lookatNextPanoIndex } })
           }
         })
       return { keyframesId: uuid(), keyframes: keyframes.map((keyframe, index) => ({ id: uuid(), index, ...keyframe })) }
@@ -377,6 +393,8 @@ export default class CruisePluginController extends BasePluginWithData.Controlle
       hooks.emit('play', { userAction: options?.userAction ?? true })
     }
 
+    let playedFirstKeyframe = false
+
     const getPlayFromIndex = async () => {
       // play from index
       if (options?.playFromIndex !== undefined) return options.playFromIndex
@@ -386,12 +404,13 @@ export default class CruisePluginController extends BasePluginWithData.Controlle
       else if (pauseData?.keyframeId) {
         const pausedKeyframe = this.data?.keyframes.find((keyframe) => keyframe.id === pauseData.keyframeId)
         // restore paused state
-        if (pauseData?.fiveState) await this.move(pauseData.fiveState)
+        if (pauseData?.fiveState) await this.move(pauseData.fiveState, { moveEffect: privateState.moveToFirstPanoEffect })
         if (pausedKeyframe) {
           if (pausedKeyframe.data.effect === 'Move') return pausedKeyframe.index
           else if (pausedKeyframe.data.effect === 'Rotate') {
             const duration = pauseData.duration !== undefined ? pauseData.duration * (1 - pauseData.playedProgress) : undefined
-            await this.playKeyframe(pausedKeyframe, duration)
+            await this.playKeyframe(pausedKeyframe, { duration })
+            playedFirstKeyframe = true
             // playFromIndex += 1 cause played last part of paused keyframe
             return pausedKeyframe.index + 1
           }
@@ -413,10 +432,16 @@ export default class CruisePluginController extends BasePluginWithData.Controlle
       try {
         console.log('playIndexChange', keyframe.index)
         hooks.emit('playIndexChange', keyframe.index, keyframe)
-        await this.playKeyframe(keyframe)
+        console.log({ playFromIndex })
+        await this.playKeyframe(keyframe, {
+          moveEffect: playedFirstKeyframe === false ? privateState.moveToFirstPanoEffect : undefined,
+          duration: 800,
+        })
+        if (keyframe.stay) await sleep(keyframe.stay)
+        if (playedFirstKeyframe === false) playedFirstKeyframe = true
       } catch (error) {
         return Promise.resolve('broke')
-        // if think play be interupted by five gesture is an error, return Promise.reject(error)
+        // if think the play be interupted by five gesture is an error, return Promise.reject(error)
         // return Promise.reject(error)
       }
     }
@@ -449,12 +474,12 @@ export default class CruisePluginController extends BasePluginWithData.Controlle
   /**
    * @description Play single keyframe
    */
-  private async playKeyframe(keyframe: CruiseKeyframe, duration?: number) {
+  private async playKeyframe(keyframe: CruiseKeyframe, params?: { duration?: number; moveEffect?: MoveEffect }) {
     const { privateState } = this
 
     if (this.privateState.currentPlayKeyframe?.keyframe.id !== keyframe.id) this.privateState.currentPlayKeyframe = { keyframe }
 
-    privateState.currentPlayQueue.push(this.getPlayPromise(keyframe, duration))
+    privateState.currentPlayQueue.push(this.getPlayPromise(keyframe, params))
 
     return this.actionPromiseQueue()
   }
@@ -474,10 +499,10 @@ export default class CruisePluginController extends BasePluginWithData.Controlle
   /**
    * @description: getPlayPromise
    */
-  private async getPlayPromise(keyframe: CruiseKeyframe, paramsDuration?: number) {
+  private async getPlayPromise(keyframe: CruiseKeyframe, params?: { duration?: number; moveEffect?: MoveEffect }) {
     const data = keyframe.data
     const duration =
-      paramsDuration ?? (keyframe.start !== undefined && keyframe.end !== undefined ? keyframe.end - keyframe.start : undefined)
+      params?.duration ?? (keyframe.start !== undefined && keyframe.end !== undefined ? keyframe.end - keyframe.start : undefined)
     if (!data) return
     return new Promise<void>((resolve, reject) => {
       let fulfilled = false
@@ -498,13 +523,13 @@ export default class CruisePluginController extends BasePluginWithData.Controlle
         }
         switch (data.effect) {
           case 'Move':
-            this.move(data, duration).then(res)
+            this.move(data, params).then(res)
             break
           case 'Rotate':
-            this.rotate(data, duration).then(res)
+            this.rotate(data, params).then(res)
             break
           default:
-            this.rotate(data, duration).then(res)
+            this.rotate(data, params).then(res)
         }
       } catch (e) {}
     })
@@ -535,12 +560,12 @@ export default class CruisePluginController extends BasePluginWithData.Controlle
   /**
    * @description Action move keyframe
    */
-  private async move(data: Partial<CruiseData>, duration?: number) {
+  private async move(data: Partial<CruiseData>, params?: { duration?: number; moveEffect?: MoveEffect }) {
     console.log('--move--', data.panoIndex)
     if (data.mode && data.mode !== this.five.currentMode) {
       await this.changeMode(data)
     } else if (data.panoIndex !== this.five.panoIndex) {
-      await this.changePano(data, duration)
+      await this.changePano(data, params)
     } else {
       return Promise.resolve()
     }
@@ -550,14 +575,14 @@ export default class CruisePluginController extends BasePluginWithData.Controlle
   /**
    * @description Action rotate keyframe
    */
-  private async rotate(data: Partial<CruiseData>, duration?: number) {
+  private async rotate(data: Partial<CruiseData>, params?: { duration?: number; moveEffect?: MoveEffect }) {
     console.log('--rotate--', data)
     if (data.mode && data.mode !== this.five.currentMode) {
       await this.changeMode({ mode: data.mode, panoIndex: data.panoIndex })
     } else if (data.panoIndex && data.panoIndex !== this.five.panoIndex) {
-      return await this.changePano(data, duration)
+      return await this.changePano(data, params)
     }
-    await this.updateCamera(data, duration)
+    await this.updateCamera(data, params?.duration)
   }
 
   /**
@@ -594,11 +619,11 @@ export default class CruisePluginController extends BasePluginWithData.Controlle
   /**
    * @description: Change five pano
    */
-  private async changePano(data: Partial<CruiseData>, paramsDuration = 800) {
+  private async changePano(data: Partial<CruiseData>, params?: { duration?: number; moveEffect?: MoveEffect }) {
     const { five, privateState, state } = this
     if (typeof data.panoIndex !== 'number') return
     if (data.panoIndex === five.panoIndex) return
-    let originDuration = paramsDuration
+    let originDuration = params?.duration ?? 800
     const speed = (() => {
       const speedConfig = state.config?.speedConfig
       const speedValue = data.moveSpeed ?? speedConfig?.moveSpeed
@@ -621,7 +646,7 @@ export default class CruisePluginController extends BasePluginWithData.Controlle
         longitude: data.longitude,
         fov: data.fov,
         duration,
-        effect: this.state.config?.moveEffect ?? data.moveEffect,
+        effect: params?.moveEffect ?? this.state.config?.moveEffect ?? data.moveEffect,
         moveCancelCallback: () => resolve(),
         moveEndCallback: () => resolve(),
       })
@@ -641,7 +666,7 @@ export default class CruisePluginController extends BasePluginWithData.Controlle
         const duration =
           currentPlayKeyframe.originDuration !== undefined ? currentPlayKeyframe.originDuration * (1 - this.getProgress()) : undefined
         console.log('--speedChange--', speed, { duration })
-        const promise = this.playKeyframe(currentPlayKeyframe.keyframe, duration)
+        const promise = this.playKeyframe(currentPlayKeyframe.keyframe, { duration })
         privateState.currentPlayQueue.push(promise)
       } catch (e) {}
     }

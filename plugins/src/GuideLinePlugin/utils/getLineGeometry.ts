@@ -8,10 +8,10 @@ const AXIS_NUMBER_OF_VERTEX = 3 // 每个顶点有三个轴坐标
 const UV_NUMBER_OF_VERTEX = 2 // 每个顶点有两个 UV 轴坐标
 
 export default function getLineGeometry(positionList: THREE.Vector3[]) {
-  if (positionList.length < 2) return
-  const lineWidth = 1
-  const halfLineWidth = 1 / 2
-  const aspect = 1
+  if (positionList.length < 2) return console.warn('positionList length must be greater than 1')
+  const lineWidth = 0.6
+  const halfLineWidth = lineWidth / 2
+  const aspect = 0.67 // 纵横比 width / height
   // 点位向量数组
   const keyPoints = positionList
   // 点位组成的平滑曲线

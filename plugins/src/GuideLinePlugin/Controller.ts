@@ -45,7 +45,7 @@ export default class Controller extends BasePluginWithData.Controller<PluginStat
     // render line group
     if (this.linesGroup) this.five.scene.remove(this.linesGroup)
     const linesGroup = this.getLinesGroup(data.routes)
-    if (!linesGroup) return Promise.reject(new Error('no line'))
+    if (!linesGroup) return
     this.linesGroup = linesGroup
     this.five.scene.add(linesGroup)
     this.handleVisible(this.state.visible)
@@ -155,10 +155,10 @@ export default class Controller extends BasePluginWithData.Controller<PluginStat
     const positions = data.panoIndexList.map((panoIndex) => this.five.work.observers[panoIndex]?.standingPosition).filter(notNil)
     const geometry = getLineGeometry(positions)
     if (!geometry) return
-    const material = getArrowMaterial({ textureUtl: data.arrowTextureUrl })
+    const material = getArrowMaterial({ textureUrl: data.arrowTextureUrl })
     const mesh = new THREE.Mesh(geometry, material)
     mesh.name = pluginFlag('route-line-mesh')
-    mesh.renderOrder = 3
+    // mesh.renderOrder = 3
     return mesh
   }
 

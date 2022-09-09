@@ -1459,10 +1459,10 @@
   resolved "https://registry.yarnpkg.com/@protobufjs/utf8/-/utf8-1.1.0.tgz#a777360b5b39a1a2e5106f8e858f2fd2d060c570"
   integrity sha512-Vvn3zZrhQZkkBE8LSuW3em98c0FwgO4nxzv6OdSxPKJIEKY2bGbHn+mhGIPerzI4twdxaP8/0+06HBpwf345Lw==
 
-"@realsee/five@5.0.0-alpha.141":
-  version "5.0.0-alpha.141"
-  resolved "https://registry.yarnpkg.com/@realsee/five/-/five-5.0.0-alpha.141.tgz#9d692afbdedd096d15b8719aa93c7df9a3a0ca9b"
-  integrity sha512-IlkpL2tiz505s1wuEuG31eSPdCqQlsMkFaj7nhcIjTQa+6aa++ze3VUnuzqKdCxJrWA4tGJAYRCsHKtD3QIf2g==
+"@realsee/five@5.0.0-alpha.149":
+  version "5.0.0-alpha.149"
+  resolved "https://registry.npmjs.org/@realsee/five/-/five-5.0.0-alpha.149.tgz#55b6abb1d0aa5c2611ab7a3df8fd96f9c2993ed2"
+  integrity sha512-ljFeRrpjg5e3fF7Ylxf/SWiGSC7WVDbp0rFDu6sGsuSPHUkscx6dlSRdM7vJ1RuQnaIIfNTRVWfnJ4QSChBxvQ==
   dependencies:
     "@math.gl/core" "^3.5.7"
     archiver "^5.3.0"

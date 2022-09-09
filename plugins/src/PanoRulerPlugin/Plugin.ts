@@ -139,9 +139,9 @@ export const PanoRulerPlugin: FivePlugin<PanoRulerPluginParameterType, PanoRuler
     const __rule: Rule = {}
 
     const _load = (roomInfo: RoomInfo, roomRules: RoomRules) => {
-        // if (state.loaded) {
-        //     throw new Error('标尺被重复初始化！')
-        // }
+        if (state.loaded) {
+            throw new Error('标尺被重复初始化！')
+        }
         const roomHeightInfo = getRoomHeightInfo(roomInfo, five)
         const work = five.work
         if (!work) return false
@@ -222,7 +222,7 @@ export const PanoRulerPlugin: FivePlugin<PanoRulerPluginParameterType, PanoRuler
 
         state.loaded = true
 
-        freshRule()
+        // freshRule()
         return true
     }
 
@@ -236,7 +236,7 @@ export const PanoRulerPlugin: FivePlugin<PanoRulerPluginParameterType, PanoRuler
 
         state.loaded = false
 
-        state.options = { ...state.options, ...options || {}}
+        state.options = { ...state.options, ...options || {} }
         if (five.model.loaded) {
             return _load(roomInfo, roomRules)
         } else {

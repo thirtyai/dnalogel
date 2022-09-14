@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 2.0.0-alpha.57
+- 1.fix: PanoRulerPlugin 部分数据情况下 element 未 display: none问题。
+
 ## 2.0.0-alpha.56
 - 1.fix: PanoRulerPlugin off全量事件监听。
 

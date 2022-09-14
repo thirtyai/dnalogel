@@ -298,7 +298,15 @@ export const PanoRulerPlugin: FivePlugin<PanoRulerPluginParameterType, PanoRuler
         for (const _name in __rule) {
             if (_name.split(',').indexOf(panoIndex.toString()) >= 0) name = _name
         }
-        if (!name) return
+        if (!name) {
+            for (const _name in __rule) {
+                for (const { $element } of __rule[_name].rules) {
+                    $element.style.display = 'none'
+                }
+            }
+
+            return
+        }
 
         const cameraPosition = camera.position
         const cameraDirection = camera.getWorldDirection(new Vector3())
@@ -455,24 +463,16 @@ export const PanoRulerPlugin: FivePlugin<PanoRulerPluginParameterType, PanoRuler
         $rule.setAttribute('class', 'PanoRulerPlugin' + (state.options.className ? ' ' + state.options.className : ''))
         five.getElement()?.parentElement?.append($rule)
         freshRule()
-        five.on('panoArrived', freshRule)
         five.on('modeChange', freshRule)
-        five.on('cameraDirectionUpdate', nextFrameFreshRule)
-        five.on('movingToPano', nextFrameFreshRule)
-        five.on('mouseWheel', throttleFreshRule)
-        five.on('pinchGesture', throttleFreshRule)
+        five.on('cameraUpdate', nextFrameFreshRule)
         state.enable = true
         return true
     }
 
     const disable = () => {
         if (!state.enable) return true
-        five.off('panoArrived', freshRule)
         five.off('modeChange', freshRule)
-        five.off('cameraDirectionUpdate', nextFrameFreshRule)
-        five.off('movingToPano', nextFrameFreshRule)
-        five.off('mouseWheel', throttleFreshRule)
-        five.off('pinchGesture', throttleFreshRule)
+        five.off('cameraUpdate', nextFrameFreshRule)
 
         if ($rule) {
             $rule.remove()

@@ -45,4 +45,5 @@ export * from './ItemLabelPlugin'
 // 分间标签
 export * from './PanoDoorLabelPlugin'
 
-export const DnalogelVersion = '2.0.0-alpha.49'
+// TODO build 时自动化输出当前版本
+export const DnalogelVersion = '2.0.0-alpha.57'

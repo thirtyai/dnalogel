@@ -3,7 +3,7 @@ import * as THREE from 'three'
 import type { Five } from '@realsee/five'
 import type { EventMap, PluginData, PluginServerData, Route, PluginState } from './typing'
 import type { BaseOptions } from '../base/BasePlugin'
-import getLineGeometry from './utils/getLineGeometry'
+import getLineGeometries from './utils/getLineGeometries'
 import { getArrowMaterial } from './utils/getArrowMaterial'
 import { notNil } from '../shared-utils/isNil'
 import equal from '../shared-utils/equal'
@@ -140,7 +140,7 @@ export default class Controller extends BasePluginWithData.Controller<PluginStat
    */
   private getLinesGroup(routes: Route[]) {
     /** 'as THREE.Mesh[]' for build check */
-    const meshes = routes.map(this.getLineMesh.bind(this)).filter(notNil) as THREE.Mesh[]
+    const meshes = routes.map(this.getLine.bind(this)).filter(notNil) as THREE.Object3D[]
     const group = new THREE.Group()
     group.name = pluginFlag('route-group')
     if (meshes.length === 0) return
@@ -149,17 +149,21 @@ export default class Controller extends BasePluginWithData.Controller<PluginStat
   }
 
   /**
-   * 获取单条路线的 Mesh
+   * 获取单条路线
    */
-  private getLineMesh(data: Route) {
+  private getLine(data: Route) {
+    const group = new THREE.Group()
     const positions = data.panoIndexList.map((panoIndex) => this.five.work.observers[panoIndex]?.standingPosition).filter(notNil)
-    const geometry = getLineGeometry(positions)
-    if (!geometry) return
+    const geometries = getLineGeometries(positions, { skipPosition: true, unitWidth: 0.6, unitHeight: 0.4 })
+    if (!geometries) return
     const material = getArrowMaterial({ textureUrl: data.arrowTextureUrl })
-    const mesh = new THREE.Mesh(geometry, material)
-    mesh.name = pluginFlag('route-line-mesh')
+    geometries.forEach((geometry) => {
+      const mesh = new THREE.Mesh(geometry, material)
+      mesh.name = pluginFlag('route-line-mesh')
+      group.add(mesh)
+    })
     // mesh.renderOrder = 3
-    return mesh
+    return group
   }
 
   private disposedErrorLog = () => {

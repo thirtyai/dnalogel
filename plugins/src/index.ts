@@ -51,4 +51,4 @@ export * from './GuideLinePlugin'
 // 漫游插件
 export * from './CruisePlugin'
 
-export const DnalogelVersion = '2.0.0-alpha.49'
+export const DnalogelVersion = '2.0.0-alpha.58'

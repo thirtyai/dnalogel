@@ -1,5 +1,22 @@
 # CHANGELOG
 
+## 2.0.0-alpha.58
+- feat: CruisePlugin 漫游插件
+- feat: GuideLinePlugin 地面路线引导插件
+
+## 2.0.0-alpha.57
+- 1.fix: PanoRulerPlugin 部分数据情况下 element 未 display: none问题。
+
+## 2.0.0-alpha.56
+- 1.fix: PanoRulerPlugin off全量事件监听。
+
+## 2.0.0-alpha.55
+- 1.fix: PanoRulerPlugin 异常 Dom。
+- 2.51 ～ 54 版本为测试阶段，主版本无异常变更。
+
+## 2.0.0-alpha.50
+- 1.feat: MapviewFloorplanPlugin: 添加大空间户型图插件
+
 ## 2.0.0-alpha.49
 - 1.fix: ModelTVVideoPlugin 多点位视频播放。
 

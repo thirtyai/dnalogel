@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 2.0.0
+- 1. fix: `ModelViewPlugin` 修复模型部分材质不展示的问题
+
 ## 2.0.0-alpha.57
 - 1.fix: PanoRulerPlugin 部分数据情况下 element 未 display: none问题。
 

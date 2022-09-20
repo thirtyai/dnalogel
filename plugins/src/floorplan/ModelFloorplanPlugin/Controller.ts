@@ -1,5 +1,6 @@
+import type { PartialDeep } from 'type-fest'
 import type { BaseOptions } from '../../base/BasePlugin'
-import type { EventCallback, Five, Pose, Mode } from '@realsee/five'
+import type { EventCallback, Five, Pose } from '@realsee/five'
 import type { ShowState } from '../utils/correctFiveState'
 import type { FloorplanServerData } from '../typings/floorplanServerData'
 import type {
@@ -219,7 +220,7 @@ export class Controller extends BasePlugin.Controller<State, EventMap, PluginSer
   }
 
   /** 更改插件 State */
-  public setState(state: Partial<State>, options: BaseOptions = {}) {
+  public setState(state: PartialDeep<State>, options: BaseOptions = {}) {
     const prevState = this.state
     const userAction = options.userAction !== undefined ? options.userAction : true
     this.updateState(state, userAction)
@@ -232,12 +233,13 @@ export class Controller extends BasePlugin.Controller<State, EventMap, PluginSer
       const options = { userAction }
       state.visible ? this._show(options) : this._hide(options)
     }
+
+    this.render()
   }
 
   public changeConfigs(_config: Partial<Config>, userAction = true) {
     const config = { ...this.state.config, ..._config }
     this.updateState({ config }, userAction)
-    if (!this.container) return
     this.render()
   }
 
@@ -370,9 +372,10 @@ export class Controller extends BasePlugin.Controller<State, EventMap, PluginSer
     this.render()
   }
 
-  private updateState(state: Partial<State>, userAction: boolean) {
+  private updateState(state: PartialDeep<State>, userAction: boolean) {
     const prevState = this.state
-    this.state = { ...this.state, ...state }
+    const config = state.config ? { ...prevState.config, ...state.config } : prevState.config
+    this.state = { ...this.state, ...state, config }
     if (equal(this.state, prevState, { deep: true })) return
     this.hooks.emit('stateChange', { state: this.state, prevState, userAction })
   }

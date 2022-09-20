@@ -108,6 +108,8 @@ export class Controller extends BasePlugin.Controller<State, EventMap, PluginSer
       attachedTo: FLOOR_PLAN_ATTACHED_TO.BOUNDING_CENTER,
       getLabelElement: undefined,
       adaptiveRoomLabelVisibleEnable: true,
+      getRoomAreaText: (size) => (size / 1000000).toFixed(1) + '㎡',
+      getRuleDistanceText: (distance) => distance.toString()
     }
     const paramsConfig = params ? omit(params, ['selector', 'scale']) : {}
     const config: Config = { ...baseConfig, ...paramsConfig }
@@ -234,6 +236,11 @@ export class Controller extends BasePlugin.Controller<State, EventMap, PluginSer
       const options = { userAction }
       state.visible ? this._show(options) : this._hide(options)
     }
+  }
+
+  public changeConfigs(config: Partial<Config>, userAction = true) {
+    this.updateState({ config }, userAction)
+    this.render()
   }
 
   /** 更新户型图大小 */

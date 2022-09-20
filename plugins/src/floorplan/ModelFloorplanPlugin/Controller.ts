@@ -103,10 +103,12 @@ export class Controller extends BasePlugin.Controller<State, EventMap, PluginSer
       autoShowEnable: true,
       ruleLabelsEnable: true,
       roomLabelsEnable: true,
+      adaptiveRoomLabelVisibleEnable: true,
       cameraImageUrl: CAMERA_IMAGE,
       attachedTo: FLOOR_PLAN_ATTACHED_TO.BOUNDING_CENTER,
       getLabelElement: undefined,
-      adaptiveRoomLabelVisibleEnable: true,
+      getRoomAreaText: (size) => (size / 1000000).toFixed(1) + '㎡',
+      getRuleDistanceText: (distance) => distance.toString()
     }
     const paramsConfig = params ? omit(params, ['selector', 'scale']) : {}
     const config: Config = { ...baseConfig, ...paramsConfig }
@@ -237,8 +239,7 @@ export class Controller extends BasePlugin.Controller<State, EventMap, PluginSer
     this.render()
   }
 
-  public changeConfigs(_config: Partial<Config>, userAction = true) {
-    const config = { ...this.state.config, ..._config }
+  public changeConfigs(config: Partial<Config>, userAction = true) {
     this.updateState({ config }, userAction)
     this.render()
   }

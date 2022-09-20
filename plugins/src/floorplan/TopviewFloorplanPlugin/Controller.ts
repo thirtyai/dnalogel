@@ -60,6 +60,8 @@ export class Controller extends BasePlugin.Controller<State, EventMap, PluginSer
       attachedTo: FLOOR_PLAN_ATTACHED_TO.BOUNDING_CENTER,
       getLabelElement: undefined,
       adaptiveRoomLabelVisibleEnable: true,
+      getRoomAreaText: (size) => (size / 1000000).toFixed(1) + '㎡',
+      getRuleDistanceText: (distance) => distance.toString()
     }
     const paramsConfig = params ? omit(params, ['selector', 'scale']) : {}
     const config: Config = { ...baseConfig, ...paramsConfig }
@@ -204,6 +206,11 @@ export class Controller extends BasePlugin.Controller<State, EventMap, PluginSer
     }
   }
 
+  public changeConfigs(config: Partial<Config>, userAction = true) {
+    this.updateState({ config }, userAction)
+    this.render()
+  }
+
   protected async formatData(serverData: PluginServerData) {
     return await formatData(serverData.data)
   }
@@ -212,7 +219,7 @@ export class Controller extends BasePlugin.Controller<State, EventMap, PluginSer
     if (!this.state.enabled) return
     this.isHiddenByHideFunc = false
     const { userAction } = options
-    this.hooks.emit('show', { userAction })
+    this.hooks.emit('show', { userAction, auto: false })
     if (this.five.getCurrentState().mode !== 'Topview') {
       await changeMode(this.five, ['Topview', undefined, undefined, userAction])
     }
@@ -222,14 +229,14 @@ export class Controller extends BasePlugin.Controller<State, EventMap, PluginSer
     const renderDuration = 500
     const modelOpacity = this.state.config.modelOpacity
     changeModelCanvasOpacity(this.five, modelOpacity, renderDuration)
-    this.hooks.emit('showAnimationEnded', { userAction })
+    this.hooks.emit('showAnimationEnded', { userAction, auto: false })
     this.render()
   }
 
   private async _hide(options: { userAction: boolean }) {
     if (!this.state.enabled) return
     const { userAction } = options
-    this.hooks.emit('hide', { userAction })
+    this.hooks.emit('hide', { userAction, auto: false })
     const modelOpacity = 1
     const renderDuration = 0
     changeModelCanvasOpacity(this.five, modelOpacity, renderDuration)

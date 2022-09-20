@@ -4,6 +4,7 @@
   export let type: RuleLabelsKey
   export let data: RuleLabelsValue
   export let bounding: FloorplanBounding
+  export let getRuleDistanceText: (distance: number) => string
 
   const isRow = type === 'top' || type === 'bottom'
   const padding = 1000
@@ -65,7 +66,7 @@
         style:bottom={textItem.bottom * 100 + '%'}
       >
         <div class="floorplan-plugin__rule-text" class:is-row={isRow}>
-          {textItem.distance}
+          {getRuleDistanceText(textItem.distance)}
         </div>
       </div>
     {/each}

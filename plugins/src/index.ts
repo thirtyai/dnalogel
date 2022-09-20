@@ -45,5 +45,10 @@ export * from './ItemLabelPlugin'
 // 分间标签
 export * from './PanoDoorLabelPlugin'
 
-// TODO build 时自动化输出当前版本
-export const DnalogelVersion = '2.0.0-alpha.57'
+// 路线引导Mesh
+export * from './GuideLinePlugin'
+
+// 漫游插件
+export * from './CruisePlugin'
+
+export const DnalogelVersion = '2.0.0-alpha.58'

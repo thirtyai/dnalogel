@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.0.2
+- 1. feat: FloorplanPlugin 支持动态修改房间面积展示和房间标尺展示
+- 2. refactor: FloorplanPlugin 允许 `setState` 传入 `Partial<Config>` 而不是 `Config`
+
 ## 2.0.0
 - 1. fix: `ModelViewPlugin` 修复模型部分材质不展示的问题
 - 2. feat: CruisePlugin 漫游插件

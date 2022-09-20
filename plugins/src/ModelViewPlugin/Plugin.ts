@@ -62,8 +62,9 @@ export const ModelViewPlugin: FivePlugin<void, ModelViewPluginExportType> = (fiv
     }
 
     const handleModelLoaded = () => {
-        function cloneMaterial(material: THREE.ShaderMaterial) {
-            material.clone().uniforms.modelAlpha.value = 1
+        function cloneMaterial(_material: THREE.ShaderMaterial) {
+            const material = _material.clone()
+            material.uniforms.modelAlpha.value = 1
             if (material.uniforms.map.value) {
                 material.uniforms.map.value.needsUpdate = true
             }

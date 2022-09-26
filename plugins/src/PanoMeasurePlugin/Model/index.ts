@@ -1,3 +1,4 @@
+import type { Config } from '../typings'
 import type { PluginData } from '../typings/data'
 import type { UserDistanceItem } from '../utils/distanceDom'
 import Line from './line'
@@ -18,18 +19,14 @@ interface IModelEvent extends SubscribeEventMap {
   lineRemoved: (lines: Line) => void
 }
 
-export interface ModelParams {
-  userDistanceItemCreator?: () => UserDistanceItem
-}
-
 export class Model {
   public readonly lines: Line[] = []
   public readonly points: Point[] = []
-  public readonly params: ModelParams
+  public readonly params: Config
   public readonly polylines: Polyline[] = []
   public readonly hook = new Subscribe<IModelEvent>()
 
-  public constructor(params: ModelParams) {
+  public constructor(params: Config) {
     this.params = params
   }
 

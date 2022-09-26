@@ -13,7 +13,7 @@ export interface UserDistanceItem {
   update: (params: { line: LineCompletelyJson; polyline: PolylineCompletelyJson }) => void
 }
 
-export interface IDistanceItemProps {
+export interface CreateDistanceItemProps {
   line: Line
   userDistanceItem?: UserDistanceItem
   clickCallback?: (item: DistanceItem) => unknown
@@ -50,7 +50,7 @@ function createContainerDom(line: Line) {
   return containerDom
 }
 
-export function createDistanceItem(props: IDistanceItemProps) {
+export function createDistanceItem(props: CreateDistanceItemProps) {
   function handleClick() {
     // 线被选中时才高亮，外部手动触发高亮
     // highlight()
@@ -106,7 +106,8 @@ export function createDistanceItem(props: IDistanceItemProps) {
     if (userDistanceItem) {
       userDistanceItem.update({ line: line.toCompletelyJson(), polyline: line.getPolyline().toCompletelyJson() })
     }
-    const distanceString = startPoint.position.clone().distanceTo(endPoint.position).toFixed(2) + 'm'
+    const distance = startPoint.position.clone().distanceTo(endPoint.position)
+    const distanceString = props.line.model.params.getDistanceText(distance)
     contentDom.innerText !== distanceString && (contentDom.innerText = distanceString)
   }
 

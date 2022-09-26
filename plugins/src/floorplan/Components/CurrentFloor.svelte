@@ -13,23 +13,34 @@
   export let roomLabelsEnable: boolean
   export let ruleLabelsEnable: boolean
   export let floorplanData: FloorplanData
+  export let getRoomAreaText: (areaSize: number) => string
   export let getLabelElement: undefined | ((room: FloorplanRoomItem) => Element | null)
+  export let getRuleDistanceText: (distance: number) => string
   export let adaptiveRoomLabelVisibleEnable: boolean
 
   const hoveredRoom = writable<undefined | FloorplanRoomItem>(undefined)
 </script>
 
-<div class={`floorplan-plugin__floor${isCurrent ? ' floorplan-plugin__floor--is-current' : ''}`}>
+<div class="{`floorplan-plugin__floor${isCurrent ? ' floorplan-plugin__floor--is-current' : ''}`}">
   <RoomMaterial {...{ floorIndex, floorplanData }} />
   {#if hoverEnable}
     <RoomHighlight {...{ floorIndex, floorplanData, hoveredRoom }} />
   {/if}
   <BaseImage {...{ floorplanData, floorIndex }} />
   {#if roomLabelsEnable}
-    <RoomLabels {...{ floorplanData, floorIndex, getLabelElement, hoveredRoom, adaptiveRoomLabelVisibleEnable }} />
+    <RoomLabels
+      {...{
+        floorplanData,
+        floorIndex,
+        getRoomAreaText,
+        getLabelElement,
+        hoveredRoom,
+        adaptiveRoomLabelVisibleEnable,
+      }}
+    />
   {/if}
   {#if ruleLabelsEnable}
-    <RuleLabels {...{ floorplanData, floorIndex }} />
+    <RuleLabels {...{ floorplanData, floorIndex, getRuleDistanceText }} />
   {/if}
 </div>
 

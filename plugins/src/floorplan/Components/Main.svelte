@@ -18,7 +18,9 @@
   export let floorplanData: FloorplanData
   export let lastPanoramaLongitude: number
   export let cameraImageUrl: undefined | string
+  export let getRoomAreaText: (areaSize: number) => string
   export let getLabelElement: undefined | ((room: FloorplanRoomItem) => Element | null)
+  export let getRuleDistanceText: (distance: number) => string
   export let adaptiveRoomLabelVisibleEnable: boolean
 </script>
 
@@ -29,7 +31,9 @@
         {...{
           hoverEnable,
           floorplanData,
+          getRoomAreaText,
           getLabelElement,
+          getRuleDistanceText,
           roomLabelsEnable,
           ruleLabelsEnable,
           adaptiveRoomLabelVisibleEnable,

@@ -7,8 +7,11 @@ import { nextFrame } from '../shared-utils/nextFrame'
 import throttle from '../shared-utils/throttle'
 import PanoRulerStyle from './style'
 
-export interface PanoRulerPluginOptions {
-    distanceText?: (distance: number) => string
+interface PanoRulerPluginConfig {
+    distanceText: (distance: number) => string
+}
+
+export interface PanoRulerPluginOptions extends Partial<PanoRulerPluginConfig> {
     className?: string
 }
 
@@ -29,6 +32,7 @@ export interface PanoRulerPluginExportType {
     disable: () => void
     load: (roomInfo?: RoomInfo, roomRules?: RoomRules, options?: PanoRulerPluginOptions) => Promise<boolean>
     state: PanoRulerPluginPluginState
+    changeConfigs: (config: Partial<PanoRulerPluginConfig>) => void
 }
 
 const getDistance = (p1: { x: number; z: number }, p2: { x: number; z: number }) => {
@@ -482,11 +486,28 @@ export const PanoRulerPlugin: FivePlugin<PanoRulerPluginParameterType, PanoRuler
         return true
     }
 
+    function changeConfigs(config: Partial<PanoRulerPluginConfig>) {
+        if (config.distanceText && config.distanceText !== state.options.distanceText) {
+            const distanceText = config.distanceText
+            state.options.distanceText = distanceText
+            Object.values(__rule).forEach((item) => {
+                item.rules.forEach((rule) => {
+                    const [origin, vertical] = rule.rule
+                    const distance = origin.distanceTo(vertical)
+                    const textEle = rule.$element.querySelector<HTMLDivElement>('.PanoRulerPlugin-rule-label-name')
+                    if (!textEle) return
+                    textEle.innerText = distanceText(distance)
+                })
+            })
+        }
+    }
+
     return {
         enable,
         disable,
         load,
         state,
+        changeConfigs,
     }
 }
 

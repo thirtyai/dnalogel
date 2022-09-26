@@ -1,8 +1,8 @@
+import type Point from '../Model/point'
 import type { LineJson } from '../typings/data'
 import type { EventCallback } from '@realsee/five'
 import { Model } from '../Model'
 import Line from '../Model/line'
-import Point from '../Model/point'
 import BaseController, { IControllerParams } from './BaseController'
 import DeleteDom from '../Modules/DeleteDom'
 import { findAssociatedLines } from '../utils/findAssociatedLines'
@@ -18,15 +18,13 @@ export interface EditEvent {
 
 export default class MixedController extends BaseController {
   public state: State = 'watching'
-  public model = new Model({ userDistanceItemCreator: this.userDistanceItemCreator })
+  public model = new Model(this.config)
   private hasAppendDashed = false
   private fiveElement?: HTMLCanvasElement
   private mobileStartPoint: Point | null = null
   private mobileNowPoint: Point | null = null
   private highlightedLines: Line[] = []
   private deleteDom: DeleteDom
-  /** 圆环点到上一个端点连接的虚线 */
-  private dashed: Line
 
   public constructor(params: IControllerParams) {
     super(params)
@@ -34,10 +32,6 @@ export default class MixedController extends BaseController {
       onClick: this.deleteDomClickCallback,
       cancelDelete: this.cancelDeleteClickCallback,
     }).appendTo(this.container)
-    // ==================== 虚线 ====================
-    this.dashed = new Line(new Point([0, 0, 0]), new Point([0, 0, 0]), this.model)
-    this.dashed.mesh.setMaterial({ dashed: true, dashScale: 100 })
-    this.dashed.mesh.name = 'dashLine'
     // ==================== 事件监听 ====================
     // five
     this.five.on('cameraUpdate', this.onCameraUpdate)

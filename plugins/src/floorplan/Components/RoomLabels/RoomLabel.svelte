@@ -6,6 +6,7 @@
   export let pxmm: number
   export let room: FloorplanRoomItem
   export let hoveredRoom: Writable<FloorplanRoomItem | undefined>
+  export let getRoomAreaText: (areaSize: number) => string
   export let getLabelElement: undefined | ((room: FloorplanRoomItem) => Element | null)
   export let adaptiveRoomLabelVisibleEnable: boolean
 
@@ -60,9 +61,7 @@
   // TODO: 统一这里的判断条件，目前写了多处
   const bodyWidth = document.body.clientWidth
   const bodyHeight = document.body.clientHeight
-  const roomSizeDes = room.size ? (room.size / 1000000).toFixed(1) + '㎡' : ''
   // ====================================
-
   const roomLabel = room.roomLabel
   const left = roomLabel.positionInImage.x * 100 + '%'
   const top = roomLabel.positionInImage.y * 100 + '%'
@@ -73,6 +72,7 @@
   let labelElement: HTMLDivElement
   let labelElementSize: { width: number; height: number }
 
+  $: roomSizeDes = room.size ? getRoomAreaText(room.size) : ''
   $: isLabelInRoom = labelElementSize ? isLabelInRoomCurry(room, labelElementSize) : undefined
   $: userConfigElement = getLabelElement?.(room)
   $: labelVisible = adaptiveRoomLabelVisibleEnable ? (isHoverd ? true : !!isLabelInRoom?.(pxmm)) : true

@@ -1,4 +1,5 @@
 import type BaseController from './BaseController'
+import type { Config } from '../typings'
 import type { OpenParameter, PluginData } from '../typings/data'
 import type { PanoMeasurePluginEvent } from '../typings/event.type'
 import type { UserDistanceItem } from '../utils/distanceDom'
@@ -8,6 +9,7 @@ import EditController from './EditController'
 import ViewController from './ViewController'
 import WatchController from './WatchController'
 import MixedController from './MixedController'
+import { omit } from '../../shared-utils/filter'
 import { Group } from 'three'
 import { Model } from '../Model'
 import { Five, Subscribe } from '@realsee/five'
@@ -21,7 +23,7 @@ import RangePieceController from '../Modules/rangePiece'
 export type Mode = 'Watch' | 'Edit' | 'Mixed' | 'View'
 
 // 参数
-export interface PanoMeasureParameterType {
+export interface PanoMeasureParameterType extends Partial<Config> {
   openParams?: OpenParameter
   magnifierParams?: MagnifierParameter
   useUIController?: boolean
@@ -38,6 +40,7 @@ export default class MeasureController {
   private five: Five
   private model: Model
   private group: Group
+  private config: Config
   private fiveHelper: FiveHelper
   private useUIController?: UIController
   private params: PanoMeasureParameterType
@@ -51,7 +54,14 @@ export default class MeasureController {
   public constructor(five: Five, params: PanoMeasureParameterType) {
     this.five = five
     this.params = params
-    this.model = new Model({ userDistanceItemCreator: this.params.userDistanceItemCreator })
+    const defaultConfig: Config = {
+      userDistanceItemCreator: undefined,
+      getDistanceText(distance) {
+        return distance.toFixed(2) + 'm'
+      },
+    }
+    this.config = { ...defaultConfig, ...omit(params, ['openParams', 'magnifierParams']) }
+    this.model = new Model(this.config)
     this.fiveHelper = new FiveHelper(five)
     // magnifier
     this.magnifier = new Magnifier(five, params.magnifierParams ?? { width: 190, height: 190, scale: 2 })
@@ -75,6 +85,7 @@ export default class MeasureController {
       hook: this.hook,
       group: this.group,
       model: this.model,
+      config: this.config,
       magnifier: this.magnifier,
       container: this.container,
       fiveHelper: this.fiveHelper,
@@ -233,5 +244,13 @@ export default class MeasureController {
     this.controllerParams.openParams.isMobile = isMobile
     if (this.params.useUIController !== false) this.useUIController?.dispose()
     this.useUIController = new UIController(this, this.controllerParams)
+  }
+
+  public changeConfigs(config: Partial<Config>) {
+    if (config.getDistanceText && config.getDistanceText !== this.config.getDistanceText) {
+      const getDistanceText = config.getDistanceText
+      this.config.getDistanceText = getDistanceText
+      this.controller?.updateDistanceUI()
+    }
   }
 }

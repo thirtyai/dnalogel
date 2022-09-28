@@ -14,17 +14,14 @@ export interface EditEvent {
 
 export default class EditController extends BaseController {
   public type = 'edit'
-  public model = new Model({ userDistanceItemCreator: this.userDistanceItemCreator })
   private pressPoint?: Point
   private hasAppendDashed = false
   private hasAppendMouseGroup = false
   private fiveElement?: HTMLCanvasElement
   /** 上一个端点位置 */
   private lastPoint: Point | null = null
-  /** 鼠标点到上一个端点连接的虚线 */
-  private dashed: Line
   private hammer?: InstanceType<typeof Hammer['Manager']>
-
+  
   /** 根据 intersection 更新放大镜和吸附点 */
   private onIntersectionUpdate = throttle((intersection: Intersection, mesh?: IntersectMeshInterface) => {
     if (this.hasAppendMouseGroup === false) {
@@ -41,9 +38,7 @@ export default class EditController extends BaseController {
 
   public constructor(params: IControllerParams) {
     super(params)
-    // ==================== 虚线 ====================
-    this.dashed = new Line(new Point([0, 0, 0]), new Point([0, 0, 0]), this.model)
-    this.dashed.mesh.setMaterial({ dashed: true, dashScale: 100 })
+    this.model = new Model(this.config)
     // ==================== 事件监听 ====================
     // five
     this.five.on('cameraUpdate', this.onCameraUpdate)

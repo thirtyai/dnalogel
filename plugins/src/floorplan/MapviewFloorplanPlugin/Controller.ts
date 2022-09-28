@@ -1,3 +1,4 @@
+import type { PartialDeep } from 'type-fest'
 import type { BaseOptions } from '../../base/BasePlugin'
 import type { EventCallback, Five, Pose } from '@realsee/five'
 import type { ShowState } from '../utils/correctFiveState'
@@ -107,6 +108,8 @@ export class Controller extends BasePlugin.Controller<State, EventMap, PluginSer
       attachedTo: FLOOR_PLAN_ATTACHED_TO.BOUNDING_CENTER,
       getLabelElement: undefined,
       adaptiveRoomLabelVisibleEnable: true,
+      getRoomAreaText: (size) => (size / 1000000).toFixed(1) + '㎡',
+      getRuleDistanceText: (distance) => distance.toString()
     }
     const paramsConfig = params ? omit(params, ['selector', 'scale']) : {}
     const config: Config = { ...baseConfig, ...paramsConfig }
@@ -220,7 +223,7 @@ export class Controller extends BasePlugin.Controller<State, EventMap, PluginSer
   }
 
   /** 更改插件 State */
-  public setState(state: Partial<State>, options: BaseOptions = {}) {
+  public setState(state: PartialDeep<State>, options: BaseOptions = {}) {
     const prevState = this.state
     const userAction = options.userAction !== undefined ? options.userAction : true
     this.updateState(state, userAction)
@@ -233,6 +236,11 @@ export class Controller extends BasePlugin.Controller<State, EventMap, PluginSer
       const options = { userAction }
       state.visible ? this._show(options) : this._hide(options)
     }
+  }
+
+  public changeConfigs(config: Partial<Config>, userAction = true) {
+    this.updateState({ config }, userAction)
+    this.render()
   }
 
   /** 更新户型图大小 */
@@ -377,9 +385,10 @@ export class Controller extends BasePlugin.Controller<State, EventMap, PluginSer
     this.render()
   }
 
-  private updateState(state: Partial<State>, userAction: boolean) {
+  private updateState(state: PartialDeep<State>, userAction: boolean) {
     const prevState = this.state
-    this.state = { ...this.state, ...state }
+    const config = state.config ? { ...prevState.config, ...state.config } : prevState.config
+    this.state = { ...this.state, ...state, config }
     if (equal(this.state, prevState, { deep: true })) return
     this.hooks.emit('stateChange', { state: this.state, prevState, userAction })
   }

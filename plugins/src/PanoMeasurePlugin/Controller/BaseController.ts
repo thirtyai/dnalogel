@@ -1,18 +1,21 @@
-import type Line from '../Model/line'
 import type Magnifier from '../Modules/Magnifier'
 import type FiveHelper from '../Modules/FiveHelper'
 import type { Group } from 'three'
 import type { Model } from '../Model'
+import type { Config } from '../typings'
 import type { PanoMeasurePluginEvent } from '../typings/event.type'
 import type { UserDistanceItem } from '../utils/distanceDom'
 import type { Five, Intersection, IntersectMeshInterface, Subscribe } from '@realsee/five'
 import type { OpenParameter } from '../typings/data'
+import Line from '../Model/line'
+import Point from '../Model/point'
 import { preventDefault } from '../utils/ironbox'
 
 export interface IControllerParams {
   five: Five
   group: Group
   model: Model
+  config: Config
   mouseGroup: Group
   container: Element
   magnifier: Magnifier
@@ -22,10 +25,12 @@ export interface IControllerParams {
   userDistanceItemCreator?: () => UserDistanceItem
 }
 
-export default abstract class BaseController {
+export default class BaseController {
+  public model: Model
   protected five: Five
   protected group: Group
-  protected model: Model
+  protected config: Config
+  protected dashed: Line
   protected disposed = false
   protected isMobile: boolean
   protected mouseGroup: Group
@@ -40,6 +45,7 @@ export default abstract class BaseController {
     this.five = params.five
     this.hook = params.hook
     this.model = params.model
+    this.config = params.config
     this.magnifier = params.magnifier
     this.container = params.container
     this.fiveHelper = params.fiveHelper
@@ -48,6 +54,10 @@ export default abstract class BaseController {
     // ==================== Groups ====================
     this.group = params.group
     this.mouseGroup = params.mouseGroup
+    // ==================== 虚线 ====================
+    this.dashed = new Line(new Point([0, 0, 0]), new Point([0, 0, 0]), this.model)
+    this.dashed.mesh.setMaterial({ dashed: true, dashScale: 100 })
+    this.dashed.mesh.name = 'dashLine'
 
     const fiveElement = this.five.getElement()
     if (fiveElement) {
@@ -56,14 +66,15 @@ export default abstract class BaseController {
     }
   }
 
+  public updateDistanceUI = () => {
+    this.dashed.distanceItem.update(this.five)
+    this.model.lines.forEach((line) => line.distanceItem.update(this.five))
+  }
+
   protected removeLine(line: Line) {
     this.group.remove(line.mesh, line.lightMesh)
     line.distanceItem.remove()
     this.five.needsRender = true
-  }
-
-  protected updateDistanceUI = () => {
-    this.model.lines.forEach((line) => line.distanceItem.update(this.five))
   }
 
   protected updateMouseGroup(intersection: Intersection, mesh?: IntersectMeshInterface) {

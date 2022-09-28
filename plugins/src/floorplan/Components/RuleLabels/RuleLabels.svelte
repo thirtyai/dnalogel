@@ -4,6 +4,7 @@
 
   export let floorIndex: number
   export let floorplanData: FloorplanData
+  export let getRuleDistanceText: (distance: number) => string
 
   const padding = 1000
   const exteriorWallOffset = 180
@@ -11,7 +12,9 @@
   $: bounding = floorplanData.bounding
   $: ruleLabelData = floorplanData.floorDatas[floorIndex].rules
   $: ruleLabelDataKeys = Object.keys(ruleLabelData) as RuleLabelsKey[]
-  $: ruleLabelArray = ruleLabelDataKeys.map((key) => [key, ruleLabelData[key]] as [RuleLabelsKey, RuleLabelsValue])
+  $: ruleLabelArray = ruleLabelDataKeys.map(
+    (key) => [key, ruleLabelData[key]] as [RuleLabelsKey, RuleLabelsValue],
+  )
   $: boundingWidth = bounding.max.x - bounding.min.x
   $: boundingHeight = bounding.max.y - bounding.min.y
   $: contentWidth = bounding.max.x - bounding.min.x - (padding - exteriorWallOffset) * 2
@@ -22,7 +25,7 @@
 
 <div class="floorplan-plugin__rule-labels-wrapper" style:width style:height>
   {#each ruleLabelArray as [type, data] (type)}
-    <RuleItem {...{ type, data, bounding }} />
+    <RuleItem {...{ type, data, bounding, getRuleDistanceText }} />
   {/each}
 </div>
 

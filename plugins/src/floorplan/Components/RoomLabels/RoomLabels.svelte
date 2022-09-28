@@ -6,6 +6,7 @@
   export let floorIndex: number
   export let floorplanData: FloorplanData
   export let hoveredRoom: Writable<FloorplanRoomItem | undefined>
+  export let getRoomAreaText: (areaSize: number) => string
   export let getLabelElement: undefined | ((room: FloorplanRoomItem) => Element | null)
   export let adaptiveRoomLabelVisibleEnable: boolean
 
@@ -23,7 +24,16 @@
 {#if rooms}
   <div class="floorplan-plugin__room-labels" bind:clientWidth>
     {#each rooms as room (room.id)}
-      <RoomLabel {...{ pxmm, room, getLabelElement, hoveredRoom, adaptiveRoomLabelVisibleEnable }} />
+      <RoomLabel
+        {...{
+          pxmm,
+          room,
+          getLabelElement,
+          getRoomAreaText,
+          hoveredRoom,
+          adaptiveRoomLabelVisibleEnable,
+        }}
+      />
     {/each}
   </div>
 {/if}

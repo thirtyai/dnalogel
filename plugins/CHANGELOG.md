@@ -3,6 +3,7 @@
 ## 2.0.3
 - 1. fix: ModelRoomLabelPlugin 修复在 Five 模型切换动画过程中改变楼层，没有触发刷新的问题。
 - 2. fix: ModelRoomLabelPlugin 修复切换楼层时，没有触发立即刷新的问题。
+- 3. refactor: ModelViewPlugin 支持配置锁定视角和点位。
 
 ## 2.0.2
 - 1. feat: FloorplanPlugin 支持动态修改房间面积展示和房间标尺展示

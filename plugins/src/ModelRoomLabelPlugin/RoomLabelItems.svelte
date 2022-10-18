@@ -10,24 +10,17 @@
 
   let containerWidth: number
   let containerHeight: number
-  let shownFloor: number | null = null
+  let shownFloor: number | null = five.model.shownFloor ?? null
   $: rendererSize = { x: containerWidth, y: containerHeight }
 
   $: {
-    // rendererSize 变化时，触发 reRender
-    roomLabels = getFormatedRoomLabels(rendererSize)
-  }
-
-  $: {
-    // shownFloor 变化时，更新 item visible
-    roomLabels = roomLabels.map((item) => {
-      const isLabelInFloor = shownFloor === null || item.floorIndex === shownFloor
-      const visible = isLabelInFloor ? item.visible : false
-      return {...item, visible}
-    })
+    // rendererSize 和 shownFloor 变化时，触发 reRender
+    roomLabels = getFormatedRoomLabels({ rendererSize, shownFloor })
   }
 
   function getLabelVisible(item: RoomLabel) {
+    const isLabelInFloor = shownFloor === null || item.floorIndex === shownFloor
+    if (!isLabelInFloor) return false
     const raycaster = new Raycaster()
     const cameraPosition = five.camera.position.clone()
     const position = new Vector3(item.position.x, item.position.y, item.position.z)
@@ -48,7 +41,11 @@
     return `translate(${xOffset}px, ${yOffset}px)`
   }
 
-  function getFormatedRoomLabels(rendererSize: { x: number; y: number }) {
+  function getFormatedRoomLabels(params: {
+    rendererSize: { x: number; y: number }
+    shownFloor: number
+  }) {
+    const { rendererSize, shownFloor } = params
     // 因为 item distance 需要重复计算，所以缓存一下
     const distanceMap = new Map<string, number>()
 
@@ -77,7 +74,7 @@
   }
 
   function onFiveCameraUpdate() {
-    roomLabels = getFormatedRoomLabels(rendererSize)
+    roomLabels = getFormatedRoomLabels({ rendererSize, shownFloor })
   }
 
   function onFiveModelShownFloorChange(floorIndex: null | number) {

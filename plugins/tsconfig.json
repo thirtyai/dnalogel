@@ -1,8 +1,8 @@
 {
-  "extends": "../node_modules/@tsconfig/svelte/tsconfig.json",
+  "extends": "@tsconfig/svelte/tsconfig.json",
+  "include": ["./src/**/*.ts"],
   "compilerOptions": {
     "isolatedModules": true,
-    "useDefineForClassFields": true,
     "module": "esnext",
     "resolveJsonModule": true,
     "baseUrl": ".",
@@ -10,15 +10,9 @@
     "checkJs": true,
     "sourceMap": false,
     "declaration": true,
-    "outDir": "libs",
+    "outDir": "temp",
     "declarationDir": "libs",
     "moduleResolution": "node",
     "types": ["node", "svelte"]
   },
-  "paths": {
-    "@realsee/dnalogel/components": ["./src/components"]
-  },
-  "include": ["src/**/*.d.ts", "src/**/*.ts", "src/**/*.js", "src/**/*.svelte"],
-  "exclude": ["libs"],
-  "references": [{ "path": "./tsconfig.node.json" }]
 }

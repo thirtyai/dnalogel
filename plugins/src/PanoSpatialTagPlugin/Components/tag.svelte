@@ -97,6 +97,7 @@
     <i class="PanoSpatialTagPlugin__tag-line2"/>
   </div>
   <div class="PanoSpatialTagPlugin__tag-animate" style="transform: scale({contentZoom * 3})">
+    <!-- svelte-ignore a11y-click-events-have-key-events -->
     <div class="PanoSpatialTagPlugin__tag-content" on:click="{handleClickContent}" bind:this={contentDom}>
       {@html content}
     </div>

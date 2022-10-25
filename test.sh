@@ -7,7 +7,7 @@ rm -rf online
 rm -rf test
 
 # 构建
-yarn run build:examples
+npm run build
 
 # 移动数据文件夹
 cp -r examples/open-works online/dnalogel/

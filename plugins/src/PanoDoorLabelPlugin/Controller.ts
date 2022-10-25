@@ -1,5 +1,5 @@
 import type { Five } from '@realsee/five'
-import type { BaseOptions, EventMap, State } from 'src/base/BasePlugin'
+import type { BaseOptions, EventMap, State } from '../base/BasePlugin'
 import type {
   FloorplanServerData,
   FloorplanServerRoomItem,

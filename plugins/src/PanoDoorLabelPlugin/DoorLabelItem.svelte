@@ -4,6 +4,7 @@
 
   export let props: LabelItemProp
   export let onClick: () => void
+
   let divElement
   let { left, top, inSight, transform, panoIndex, cameraToward, name } = props
   let prevPanoIndexRef = 0
@@ -40,6 +41,7 @@
     style="{`left: ${left || 0}%;top: ${top || 0}%;opacity: ${inSight ? 1 : 0}`}"
     class="plugin-DoorLabelPlugin-item"
   >
+    <!-- svelte-ignore a11y-click-events-have-key-events -->
     <div
       class="{classnames('plugin-DoorLabelPlugin-cnt', props.toward)}"
       style="{`transform: ${transform || 'initial'};pointer-events: ${

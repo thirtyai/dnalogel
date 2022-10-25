@@ -4,7 +4,7 @@
   "readme": "./README.md",
   "entryPointStrategy": "expand",
   "name": "如视看房插件合集",
-  "tsconfig": "./tsconfig.build.json",
+  "tsconfig": "./tsconfig.json",
   "hideGenerator": true,
   "includeVersion": true,
   "excludeExternals": true,

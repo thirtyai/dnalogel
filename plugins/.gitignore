@@ -7,13 +7,6 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-components
-dist
-libs
-dist-ssr
-*.local
-
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -25,5 +18,16 @@ dist-ssr
 *.sln
 *.sw?
 
+# Git
+.git
+
+# Work files
 docs
+temp
+node_modules
+components
+dist
+libs
+dist-ssr
+*.local
 

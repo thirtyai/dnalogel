@@ -2,11 +2,11 @@
     import type { Subscribe, WorkObserver } from '@realsee/five'
     import { Five, Mode } from '@realsee/five'
     import type { ItemLabel } from './typings'
-    import { ITEM_LABEL_PLUGIN_DISPLAY_STRATEGY_TYPE } from "./typings";
+    import type { ITEM_LABEL_PLUGIN_DISPLAY_STRATEGY_TYPE } from "./typings";
     import { beforeUpdate, onDestroy, onMount } from "svelte";
     import * as THREE from 'three'
     import ItemLabelItem from './ItemLabelItem.svelte'
-    import { PluginEvent } from "./events.type";
+    import type { PluginEvent } from "./events.type";
     import debounce from '../shared-utils/debounce'
     import { isImpacted } from "./utils/isImpacted";
     import { getStrokeLength } from "./utils/getStrokeLength";
@@ -17,7 +17,6 @@
 
     export let five: Five
     export let modelOcclusionEnable: boolean
-    export let onlyVisibleInPanorama: boolean
     export let itemLabels: ItemLabel[]
     export let hooks: Subscribe<PluginEvent>
     export let displayStrategyType: ITEM_LABEL_PLUGIN_DISPLAY_STRATEGY_TYPE

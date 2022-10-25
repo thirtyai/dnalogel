@@ -1,43 +1,55 @@
-import { defineConfig } from 'vite'
-import reactRefresh from '@vitejs/plugin-react-refresh'
-import { svelte } from '@sveltejs/vite-plugin-svelte'
-import { resolve } from "path";
-// import alias from '@rollup/plugin-alias'
-import postcss from 'rollup-plugin-postcss'
+/**
+ * build dist
+ */
 
+import * as path from 'path'
+import { defineConfig, LibraryOptions } from 'vite'
+import { svelte } from '@sveltejs/vite-plugin-svelte'
+
+const external = ['three', '@realsee/five', 'three/examples/jsm/renderers/CSS3DRenderer', 'three/examples/jsm/loaders/FBXLoader', '@realsee/five/line', '@tweenjs/tween.js']
+
+const config: Record<string, LibraryOptions & { outDir: string }> = {
+  components: {
+    entry: path.resolve(__dirname, "./src/components/index.ts"),
+    outDir: path.resolve(__dirname, './components'),
+    formats: ['es'],
+    fileName: () => 'index.js',
+  },
+  plugins: {
+    entry: path.resolve(__dirname, "./src/index.ts"),
+    outDir: path.resolve(__dirname, './dist'),
+    fileName: (format) => `index.${format}.js`,
+  },
+};
+
+const currentConfig = process.env.BUILD_MODULE ? config[process.env.BUILD_MODULE] : undefined
+
+if (currentConfig === undefined) {
+  throw new Error('BUILD_MODULE is not defined or is not valid');
+}
 
 // https://vitejs.dev/config/
-export default defineConfig({
-  // plugins: [reactRefresh(), svelte()],
-  plugins: [postcss()],
-  build: {
-    lib: {
-      entry: resolve(__dirname, 'src/components/index.ts'),
-      name: 'dnalogel',
-      // formats: ['es', 'umd', 'cjs'],
-      formats: ['es'],
-      fileName: (format) => `index.js`
+export default defineConfig(({ mode }) => {
+  return {
+    define: {
+      __DNALOGEL_VERSION__: JSON.stringify(process.env.npm_package_version),
     },
-    rollupOptions: {
-      plugins: [],
-      // 确保外部化处理那些你不想打包进库的依赖
-      external: ['react', 'three', '@realsee/five', '@realsee/five/line', 'three/examples/jsm/renderers/CSS3DRenderer'],
-      output: {
-        // 在 UMD 构建模式下为这些外部化的依赖提供一个全局变量
-        globals: {
-          react: 'React',
-          // five: 'FiveSDK',
-          '@realsee/five': 'five',
-          '@realsee/five/line': 'FiveSDK_Line',
-          three: 'THREE',
-          'three/examples/jsm/renderers/CSS3DRenderer': 'CSS3DRenderer'
-        }
-      }
+    build: {
+      emptyOutDir: false,
+      outDir: currentConfig.outDir,
+      lib: {
+        entry: currentConfig.entry,
+        name: 'dnalogel',
+        formats: currentConfig.formats ?? (mode === 'development' || process.env.BUILD_MODULE === 'components' ? ['es'] : ['es', 'umd', 'cjs']),
+        fileName: currentConfig.fileName,
+      },
+      rollupOptions: { external },
+      reportCompressedSize: mode === 'development' ? false : true,
     },
-    minify: 'terser',
-    outDir: 'components',
-    // watch: {}
+    plugins: [ svelte({ emitCss: false }) as any ],
+    optimizeDeps: { exclude: external },
   }
 })
+
 
 

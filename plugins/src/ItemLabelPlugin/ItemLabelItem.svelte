@@ -1,7 +1,7 @@
 <script lang="ts">
     import type { ItemLabel } from './typings'
     import type { Subscribe } from "@realsee/five";
-    import { PluginEvent } from "./events.type";
+    import type { PluginEvent } from "./events.type";
     import classNames from 'classnames'
 
     export let itemLabel: ItemLabel
@@ -34,6 +34,7 @@
      style:z-index="{itemLabel.zIndex}"
      style:transform="{itemLabel.transform}"
 >
+    <!-- svelte-ignore a11y-click-events-have-key-events -->
 	<div class={classNames("item-label-item__text-wrap", { 'item-label-item__custom': Boolean(typeof itemLabel.render === 'function') })}
 	     style="bottom: {`${itemLabel.strokeLength}px`}"
 	     on:click="{onClick}"

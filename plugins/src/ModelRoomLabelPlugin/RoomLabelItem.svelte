@@ -17,6 +17,7 @@
   style:transform="{roomLabel.transform}"
   style:opacity="{roomLabel.visible ? 1 : 0}"
 >
+  <!-- svelte-ignore a11y-click-events-have-key-events -->
   <span
     class="room-label-item__text"
     class:wide="{roomLabel.name.length > 3}"

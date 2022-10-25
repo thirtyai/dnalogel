@@ -1,5 +1,5 @@
 import { Five, Mode } from '@realsee/five'
-import { BaseOptions, Controller, EventMap, State } from 'src/base/BasePlugin'
+import { BaseOptions, Controller, EventMap, State } from '../base/BasePlugin'
 
 /**
  * pano plugin controller 基类

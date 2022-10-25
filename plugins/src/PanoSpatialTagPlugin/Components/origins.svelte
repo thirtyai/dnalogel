@@ -9,6 +9,7 @@
 </script>
 
 {#each origins as origin}
+  <!-- svelte-ignore a11y-click-events-have-key-events -->
   <i 
     class:PanoSpatialTagPlugin__tag-origin={true}
     class:PanoSpatialTagPlugin__tag-origin-destroy={origin.destroying}

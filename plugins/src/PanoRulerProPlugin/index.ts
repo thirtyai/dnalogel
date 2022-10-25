@@ -9,14 +9,14 @@ export const PanoRulerProPlugin: FivePlugin<
   PanoRulerProPluginParameterType,
   PanoRulerProPluginExportType
 > = (five: Five, params) => {
-  return new Controller(five, params)
+	return new Controller(five, params)
 }
 
 export default PanoRulerProPlugin
 
 export type {
-  PanoRulerProPluginParameterType,
-  PanoRulerProPluginExportType,
-  PanoRulerProPluginOptions,
-  PanoRulerProPluginState,
+	PanoRulerProPluginParameterType,
+	PanoRulerProPluginExportType,
+	PanoRulerProPluginOptions,
+	PanoRulerProPluginState,
 } from './typings'

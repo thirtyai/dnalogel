@@ -5,7 +5,7 @@ import { parseModelTVVideoPoints } from "./utils/parseData";
 
 type ModelTVVideoPluginPoints = THREE.Vector3[][]
 
-type ModelTVVideoPluginState = {
+interface ModelTVVideoPluginState {
     videoMeshes: THREE.Mesh<THREE.BufferGeometry, THREE.MeshBasicMaterial>[]
     videoTextureEnabled: boolean
     videoSource: string
@@ -46,11 +46,9 @@ export const ModelTVVideoPlugin: FivePlugin<ModelTVVideoPluginParameterType, Mod
 
         state.enabled = true
         state.videoMeshes = createPanoVideoMeshes()
-        console.log('state.videoMeshes', state.videoMeshes)
         state.videoMeshes.forEach((mesh) => five.scene.add(mesh))
 
         const play = () => {
-            console.log('play', state.videoTexture)
             if (!state.videoTexture) return
 
             const timeupdate = () => {
@@ -250,7 +248,7 @@ export const ModelTVVideoPlugin: FivePlugin<ModelTVVideoPluginParameterType, Mod
             // console.log('renderFrame', state.videoMeshes)
             state.videoMeshes.forEach((meshes) => {
                 if (meshes)
-                    //@ts-ignore
+                    // @ts-ignore
                     meshes.needsRender = true
             })
         })
@@ -306,7 +304,7 @@ export const ModelTVVideoPlugin: FivePlugin<ModelTVVideoPluginParameterType, Mod
         // console.log('renderFrame', state.videoMeshes)
         state.videoMeshes.forEach((meshes) => {
             if (meshes)
-                //@ts-ignore
+                // @ts-ignore
                 meshes.needsRender = true
         })
     })

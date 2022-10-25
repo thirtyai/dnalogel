@@ -23,6 +23,7 @@
 			class="item-label-item__text-wrap"
 			style="top: {`-${itemLabel.strokeLength + 26}px`}"
 	>
+			<!-- svelte-ignore a11y-click-events-have-key-events -->
 			<span
 					class="item-label-item__text"
 					on:click="{onClick}"

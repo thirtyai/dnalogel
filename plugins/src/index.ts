@@ -1,3 +1,5 @@
+export * from './components'
+
 export * from './ModelViewPlugin'
 
 export * from './CSS3DRenderPlugin'
@@ -50,5 +52,3 @@ export * from './GuideLinePlugin'
 
 // 漫游插件
 export * from './CruisePlugin'
-
-export const DnalogelVersion = '2.0.0-alpha.58'

@@ -64,6 +64,7 @@ export const CSS3DRenderPlugin: FivePlugin<CSS3DRenderPluginParameterType, CSS3D
   const create3DDomContainer = (
     ...params: Parameters<Create3DDomContainerInterface>
   ): ReturnType<Create3DDomContainerInterface> => {
+    // console.log(1)
     const points = params[0].map((point) => (point instanceof Vector3 ? point : transformPositionToVector3(point)))
     const config = params[1]
     if (points?.length < 4) return console.error('points must be equal or greater than than 4')
@@ -83,7 +84,6 @@ export const CSS3DRenderPlugin: FivePlugin<CSS3DRenderPluginParameterType, CSS3D
 
     // 获取css3DObject, 如果mode为behind的话，一起获取mesh
     const { css3DObject, mesh } = createObject(points, { ratio, dpr, container, mode })
-
     // ======= INIT START =======
     let resizeObserver:
       | {
@@ -244,5 +244,6 @@ export const CSS3DRenderPlugin: FivePlugin<CSS3DRenderPluginParameterType, CSS3D
     },
   }
 }
+
 
 export default CSS3DRenderPlugin

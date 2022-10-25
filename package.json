@@ -1,22 +1,16 @@
 {
   "name": "root",
   "private": true,
-  "devDependencies": {
-    "lerna": "^4.0.0"
-  },
   "workspaces": [
     "plugins",
     "examples"
   ],
   "scripts": {
-    "start": "yarn bootstrap && yarn build:plugins && yarn start:examples",
-    "build": "yarn bootstrap && yarn build:plugins && yarn build:examples",
-    "build:plugins": "cd plugins && yarn run build",
-    "build:examples": "yarn workspace examples build",
-    "bootstrap": "lerna bootstrap && lerna link",
-    "start:plugins": "cd plugins && yarn run build:dev",
-    "start:examples": "yarn workspace examples start",
-    "docs": "cd plugins && yarn run build:docs",
+    "dev": "sh ./bin/dev.sh",
+    "build": "npm run build:plugins && npm run build:examples",
+    "build:plugins": "cd plugins && npm run build",
+    "build:examples": "cd examples && npm run build",
+    "docs": "cd plugins && npm run docs",
     "deploy": "sh deploy.sh",
     "test": "sh test.sh"
   }

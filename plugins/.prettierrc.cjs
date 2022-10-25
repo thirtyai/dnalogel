@@ -2,7 +2,7 @@ module.exports = {
   semi: false, // 句末不使用分号
   trailingComma: 'all', // 多行时尽可能打印尾随逗号
   singleQuote: true, // 单引号
-  printWidth: 100, // 单行最大长度
+  printWidth: 140, // 单行最大长度
   tabWidth: 2,
   arrowParens: 'always', // 单参数箭头函数参数周围使用圆括号-eg: (x) => x
   bracketSpacing: true, // 在对象前后添加空格-eg: { foo: bar }
@@ -15,6 +15,6 @@ module.exports = {
   proseWrap: 'preserve',
   quoteProps: 'as-needed', // 仅在必需时为对象的 key 添加引号
   useTabs: false, // 使用空格代替tab缩进
-  
-  svelteStrictMode: true,
+
+  plugins: ['prettier-plugin-svelte']
 }

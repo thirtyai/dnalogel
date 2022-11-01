@@ -16,6 +16,7 @@ dist-ssr
 *.local
 online
 test
+plugins/bin/dev.cache
 
 # Editor directories and files
 .vscode/*
@@ -27,5 +28,6 @@ test
 *.njsproj
 *.sln
 *.sw?
+
 
 

@@ -58,3 +58,6 @@ export * from './PanoTagPlugin'
 
 // 三维物体编辑插件
 export * from './Object3DHelperPlugin'
+
+// 公共函数
+export * as Util from './shared-utils'

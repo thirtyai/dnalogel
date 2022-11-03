@@ -47,5 +47,7 @@ export function getFrameTime() {
   })
 }
 
+export * from './BetterTween'
+
 // export { Easing } from './tween'
 // export { default as tween } from './tween'

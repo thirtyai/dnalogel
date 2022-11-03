@@ -18,9 +18,7 @@ class Rectangle {
   /** 是否与矩形是否重叠 */
   public isOverlapWithRectangle(target: Rectangle): boolean {
     // X 轴投影无重叠 && 在 Y 轴投影无重叠
-    return (
-      !this.xInterval.isOverlap(target.xInterval) && !this.yInterval.isOverlap(target.yInterval)
-    )
+    return !this.xInterval.isOverlap(target.xInterval) && !this.yInterval.isOverlap(target.yInterval)
   }
 
   /** 是否包含目标矩形 */

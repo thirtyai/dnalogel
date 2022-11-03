@@ -7,7 +7,9 @@ import { Subscribe, SubscribeEventMap } from '@realsee/five'
 /** 交换数组元素 */
 function exchange(array: Uint8Array, index1: number, index2: number) {
   const value = array[index1]
-  array[index1] = array[index2]
+  const value2 = array[index2]
+  if (!value || !value2) return
+  array[index1] = value2
   array[index2] = value
 }
 
@@ -37,7 +39,7 @@ interface MagnifierConfig {
 }
 
 interface MagnifierEvent extends SubscribeEventMap {
-  wantsPanGesture: (data: { deltaX: number; deltaY: number; srcEvent: typeof Hammer['Input'] }) => boolean
+  wantsPanGesture: (event: typeof Hammer['Input']) => boolean
 }
 
 /** 放大镜配置参数 */
@@ -53,23 +55,21 @@ export interface MagnifierParameter {
   initialPosition?: { left: string; top: string }
 }
 
-export default class Magnifier {
+export class Magnifier {
   public width: number
   public height: number
-  public visible = false
+  public containerDom?: Element
   public hooks = new Subscribe<MagnifierEvent>()
-  public contentDom = document.createElement('canvas')
+  public canvas = document.createElement('canvas')
 
   private five: Five
   private scale: number
-  private wrapper?: Element
   private config: MagnifierConfig
   private offset = { x: 0, y: 0 }
-  private canvas = this.contentDom
   private context: CanvasRenderingContext2D
   private renderCenter = new THREE.Vector3()
-  private lastPanEvent?: typeof Hammer.Input
   private hammer?: InstanceType<typeof Hammer>
+  private state = { enabled: false }
 
   public constructor(five: Five, options: MagnifierParameter) {
     if (!five.renderer) throw new Error('Five Render 未初始化')
@@ -90,52 +90,63 @@ export default class Magnifier {
 
     if (this.config.dragEnabled) {
       this.hammer = new Hammer(this.canvas)
+      // this.hammer.on('panstart', this.onPanStart)
       this.hammer.on('pan', this.onPan)
       this.hammer.on('panend', this.onPanEnd)
-      // this.hooks.on('wantsPanGesture', this.onMagnifierWantsPanGesture)
     }
+    this.initStyle()
   }
 
   public dispose() {
     this.clear()
-    this.remove()
+    this.disable()
     this.hammer?.destroy()
   }
 
-  /** 移除放大镜 DOM */
-  public remove() {
+  public enable() {
+    if (this.state.enabled) return
+    this.state.enabled = true
+    this.containerDom?.append(this.canvas)
+    return this
+  }
+
+  public disable() {
+    if (!this.state.enabled) return
+    this.state.enabled = false
     this.canvas.remove()
-    this.visible = false
+    return this
+  }
+
+  /** 把放大镜放到某一个容器中 */
+  public appendTo(element: Element) {
+    if (this.containerDom) this.containerDom?.removeChild(this.canvas)
+    this.containerDom = element
+    if (this.state.enabled) element.append(this.canvas)
+    return this
   }
 
   /** 清除放大镜渲染内容 */
   public clear() {
     this.context.clearRect(0, 0, this.canvas.width, this.canvas.height)
-  }
-
-  /** 把放大镜放到某一个容器中 */
-  public appendTo(element: Element) {
-    this.wrapper = element
-    this.initStyle()
-    element.append(this.canvas)
-    this.visible = true
+    return this
   }
 
   /** 放大传入点位周围的内容 */
   public renderWithPoint(point: THREE.Vector3) {
-    if (!this.wrapper) return
+    if (!this.containerDom) return
+    if (!this.state.enabled) return
     this.renderCenter = point
     this.render()
     if (this.config.autoFixPCPosition) this.autoFixPCPosition()
   }
 
   private autoFixPCPosition() {
-    if (!this.wrapper) return
+    if (!this.containerDom) return
     const { width, height } = this
     const position2d = this.renderCenter.clone().project(this.five.camera)
-    const left = ((position2d.x + 1) / 2) * this.wrapper.clientWidth
-    const right = (-(position2d.x - 1) / 2) * this.wrapper.clientWidth
-    const top = (-(position2d.y - 1) / 2) * this.wrapper.clientHeight
+    const left = ((position2d.x + 1) / 2) * this.containerDom.clientWidth
+    const right = (-(position2d.x - 1) / 2) * this.containerDom.clientWidth
+    const top = (-(position2d.y - 1) / 2) * this.containerDom.clientHeight
     if (left < 183) {
       this.canvas.style.top = -height / 2 + 'px'
       this.canvas.style.left = 90 + 'px'
@@ -154,7 +165,7 @@ export default class Magnifier {
   }
 
   private render() {
-    if (!this.five.renderer || !this.wrapper) return
+    if (!this.five.renderer || !this.containerDom) return
     const { scale, context, width, height } = this
     const position2d = this.renderCenter.clone().project(this.five.camera)
     const renderSize = this.five.renderer.getSize(new THREE.Vector2())
@@ -203,25 +214,19 @@ export default class Magnifier {
   }
 
   private onPan = (event: typeof Hammer['Input']) => {
-    if (!this.wrapper) return
+    if (!this.containerDom) return
 
-    const lastDeltaX = this.lastPanEvent?.deltaX ?? 0
-    const lastDeltaY = this.lastPanEvent?.deltaY ?? 0
-    const deltaX = event.deltaX - lastDeltaX
-    const deltaY = event.deltaY - lastDeltaY
-    this.lastPanEvent = event
-    const prevented = this.hooks.emit('wantsPanGesture', { srcEvent: event, deltaX, deltaY })
+    const prevented = this.hooks.emit('wantsPanGesture', event)
     if (prevented) return
 
-    const translateX = this.offset.x + deltaX
-    const translateY = this.offset.y + deltaY
-    this.contentDom.style.boxShadow = '0 2px 30px 0 rgba(0,0,0,0.20)'
+    const translateX = this.offset.x + event.deltaX
+    const translateY = this.offset.y + event.deltaY
+    this.canvas.style.boxShadow = '0 2px 30px 0 rgba(0,0,0,0.20)'
     this.canvas.style.transform = `translate3d(${translateX}px, ${translateY}px, 100px)`
-    this.offset = { x: translateX, y: translateY }
   }
 
   private onPanEnd = (event: typeof Hammer['Input']) => {
-    this.lastPanEvent = undefined
-    this.contentDom.style.boxShadow = 'none'
+    this.offset = { x: this.offset.x + event.deltaX, y: this.offset.y + event.deltaY }
+    this.canvas.style.boxShadow = 'none'
   }
 }

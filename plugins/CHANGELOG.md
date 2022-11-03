@@ -1,10 +1,11 @@
 # CHANGELOG
 
-## 2.0.5-alpha.1
+## 2.1.0
 - 1. feat: CSS3DRenderPlugin API支持插件3.0标准
 - 2. refactor: CSS3DRenderPlugin 重构，提供不依赖Five的内部类
 - 3. fix:  CSS3DRenderPlugin 修复在部分情况下，CSS3DDom最终渲染结果与传入的四个点的朝向可能不一致的情况
 - 4. feat: ModelTVVideoPlugin 视频点击行为由 「静音播放/不静音播放」 改为 「播放/暂停」，且在暂停时显示播放按钮
+- 5. feat: 导出 Util
 
 ## 2.0.4
 - 1. 构建工具优化

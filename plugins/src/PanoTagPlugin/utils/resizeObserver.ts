@@ -1,8 +1,5 @@
-/**
- * @description: 究极简陋的 ResizeObserver polyfill
- */
-export default function createResizeObserver(func: () => any, element?: HTMLElement) {
-  if (!element || typeof ResizeObserver === 'undefined') {
+export function resizeObserver(func: () => any, element?: HTMLElement) {
+  if (!element || typeof ResizeObserver === 'undefined' || !ResizeObserver) {
     return {
       observe: () => window.addEventListener('resize', func),
       unobserve: () => window.removeEventListener('resize', func),

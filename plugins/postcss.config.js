@@ -6,7 +6,7 @@ import postcssPluginPx2rem from 'postcss-plugin-px2rem'
 export const plugins = [
   autoprefixer,
   postcssPluginPx2rem({
-    rootValue: 19.2, // 换算基数，1rem相当于10px,值为37.5时,1rem为20px,淘宝的flex默认为1rem为10px
+    rootValue: 16, // 换算基数，1rem相当于10px,值为37.5时,1rem为20px,淘宝的flex默认为1rem为10px
     // unitPrecision: 5, //允许REM单位增长到的十进制数字。
     // propWhiteList: [],  //默认值是一个空数组，这意味着禁用白名单并启用所有属性。
     // propBlackList: ['font-size', 'border'], // 黑名单
@@ -15,6 +15,6 @@ export const plugins = [
     // ignoreIdentifier: false,  //（boolean/string）忽略单个属性的方法，启用 ignoreIdentifier 后，replace 将自动设置为 true。
     // replace: true, // （布尔值）替换包含REM的规则，而不是添加回退。
     mediaQuery: false, // （布尔值）允许在媒体查询中转换px。
-    minPixelValue: 3, // 设置要替换的最小像素值(3px会被转rem)。 默认 0
+    // minPixelValue: 3, // 设置要替换的最小像素值(3px会被转rem)。 默认 0
   }),
 ]

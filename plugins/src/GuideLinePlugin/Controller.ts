@@ -2,11 +2,11 @@ import * as BasePluginWithData from '../base/BasePluginWithData'
 import * as THREE from 'three'
 import type { Five } from '@realsee/five'
 import type { EventMap, PluginData, PluginServerData, Route, PluginState } from './typing'
-import type { BaseOptions } from '../base/BasePlugin'
 import getLineGeometries from './utils/getLineGeometries'
 import { getArrowMaterial } from './utils/getArrowMaterial'
 import { notNil } from '../shared-utils/isNil'
 import equal from '../shared-utils/equal'
+import type { Config } from '../base/BasePlugin'
 
 const VERSION = 'v1.0.1'
 
@@ -29,8 +29,8 @@ export default class Controller extends BasePluginWithData.Controller<PluginStat
 
   private linesGroup?: THREE.Group
 
-  public constructor(five: Five) {
-    super(five)
+  public constructor(five: Five, config?: Config) {
+    super(five, config)
     Object.assign(window, { [`__${PLUGIN_NAME}_DEBUG__`]: this })
   }
 
@@ -47,14 +47,21 @@ export default class Controller extends BasePluginWithData.Controller<PluginStat
     const linesGroup = this.getLinesGroup(data.routes)
     if (!linesGroup) return
     this.linesGroup = linesGroup
+
+    // wait for five model loaded
+    await this.waitFiveModelLoaded()
+
+    // add line group to scene
     this.five.scene.add(linesGroup)
+
+    // set state
     this.handleVisible(this.state.visible)
     this.handleEnable(this.state.enabled)
 
     // initialize plugin state
     if (state) this.setState(state)
 
-    // load end
+    // loaded
     this.five.needsRender = true
     this.hooks.emit('dataLoaded', data)
     console.log(`${PLUGIN} loaded`, data)
@@ -139,7 +146,7 @@ export default class Controller extends BasePluginWithData.Controller<PluginStat
    * 获取多条路线的 Mesh Group
    */
   private getLinesGroup(routes: Route[]) {
-    /** 'as THREE.Mesh[]' for build check */
+    /** 'as THREE.Object3D[]' for build check */
     const meshes = routes.map(this.getLine.bind(this)).filter(notNil) as THREE.Object3D[]
     const group = new THREE.Group()
     group.name = pluginFlag('route-group')
@@ -154,9 +161,13 @@ export default class Controller extends BasePluginWithData.Controller<PluginStat
   private getLine(data: Route) {
     const group = new THREE.Group()
     const positions = data.panoIndexList.map((panoIndex) => this.five.work.observers[panoIndex]?.standingPosition).filter(notNil)
-    const geometries = getLineGeometries(positions, { skipPosition: true, unitWidth: 0.6, unitHeight: 0.4 })
+    const geometries = getLineGeometries(positions, {
+      skipPanoIndexMesh: data.skipPanoIndexMesh ?? true,
+      unitWidth: data.unitWidth ?? 0.6,
+      unitHeight: data.unitHeight ?? 0.4,
+    })
     if (!geometries) return
-    const material = getArrowMaterial({ textureUrl: data.arrowTextureUrl })
+    const material = getArrowMaterial({ textureUrl: data.arrowTextureUrl ?? this.staticPrefix + '/release/web/arrow6.b6ce0c62.png' })
     geometries.forEach((geometry) => {
       const mesh = new THREE.Mesh(geometry, material)
       mesh.name = pluginFlag('route-line-mesh')
@@ -172,5 +183,20 @@ export default class Controller extends BasePluginWithData.Controller<PluginStat
 
   private actionWhenEnabled = <T = any>(func: () => T) => {
     if (this.state.enabled) return func()
+  }
+
+  /**
+   * @description: Wait for five model ready
+   */
+  private async waitFiveModelLoaded() {
+    return new Promise<void>((resolve) => {
+      if (this.five.model.loaded) {
+        resolve()
+        return
+      }
+      this.five.once('modelLoaded', () => {
+        resolve()
+      })
+    })
   }
 }

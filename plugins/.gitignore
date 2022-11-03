@@ -25,9 +25,10 @@ lerna-debug.log*
 docs
 temp
 node_modules
-components
+/components
 dist
 libs
 dist-ssr
 *.local
 
+mocks

@@ -29,5 +29,9 @@ plugins/bin/dev.cache
 *.sln
 *.sw?
 
+*.cache
+
+mocks
+
 
 

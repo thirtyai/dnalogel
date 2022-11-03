@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## 2.0.5-alpha.1
+- 1. feat: CSS3DRenderPlugin API支持插件3.0标准
+- 2. refactor: CSS3DRenderPlugin 重构，提供不依赖Five的内部类
+- 3. fix:  CSS3DRenderPlugin 修复在部分情况下，CSS3DDom最终渲染结果与传入的四个点的朝向可能不一致的情况
+- 4. feat: ModelTVVideoPlugin 视频点击行为由 「静音播放/不静音播放」 改为 「播放/暂停」，且在暂停时显示播放按钮
+
+## 2.0.4
+- 1. 构建工具优化
+
 ## 2.0.3
 - 1. fix: ModelRoomLabelPlugin 修复在 Five 模型切换动画过程中改变楼层，没有触发刷新的问题。
 - 2. fix: ModelRoomLabelPlugin 修复切换楼层时，没有触发立即刷新的问题。

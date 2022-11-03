@@ -1,4 +1,5 @@
-import { Five, Subscribe } from '@realsee/five'
+import type { Five } from '@realsee/five'
+import { Subscribe } from '../shared-utils/Subscribe'
 
 /**
  * 基本属性字段
@@ -23,6 +24,11 @@ interface State {
 interface BaseOptions {
   /** 是否是用户行为 */
   userAction?: boolean
+}
+
+export interface Config {
+  /** 静态资源前缀 */
+  staticPrefix?: string
 }
 
 /**
@@ -54,6 +60,8 @@ abstract class Controller<PluginState extends State, PluginEventMap extends Even
    */
   public hooks: Subscribe<PluginEventMap> = new Subscribe()
 
+  public readonly staticPrefix: string = '//vrlab-static.ljcdn.com'
+
   /**
    * 当前状态
    * @description
@@ -65,8 +73,9 @@ abstract class Controller<PluginState extends State, PluginEventMap extends Even
    */
   public abstract state: PluginState
 
-  public constructor(five: Five) {
+  public constructor(five: Five, config?: Config) {
     this.five = five
+    if (config?.staticPrefix) this.staticPrefix = config.staticPrefix
   }
 
   /**

@@ -1,7 +1,13 @@
 import * as THREE from 'three'
 import { Vector3 } from 'three'
 import getNormals from 'polyline-normals'
-import getPoint from './getPoint'
+
+export interface LineGeometriesConfig {
+  /** 是否越过点位圆环。可以开启此选项来使越过点位，使其不会重叠显示 */
+  skipPanoIndexMesh?: boolean
+  unitWidth?: number
+  unitHeight?: number
+}
 
 // 定义常量
 const TRIANGLE_NUMBER_OF_RECTANGLE = 2 // 每个矩形有两个三角形
@@ -14,13 +20,10 @@ const UV_NUMBER_OF_VERTEX = 2 // 每个顶点有两个 UV 轴坐标
  * @param {Vector3[]} positionList 坐标点数组
  * @param {number} config.unitWidth 宽
  * @param {number} config.unitHeight 高
- * @param {boolean} config.skipPosition 是否越过点位。如果点位上有其他物体，比如点位圆环，可以开启此选项来使越过点位，使其不会重叠显示
+ * @param {boolean} config.skipPanoIndexMesh 是否越过点位圆环。可以开启此选项来使越过点位，使其不会重叠显示
  * @return {THREE.BufferGeometry[]} THREE.BufferGeometry[]
  */
-export default function getLineGeometries(
-  positionList: THREE.Vector3[],
-  config?: { skipPosition?: boolean; unitWidth?: number; unitHeight?: number },
-): THREE.BufferGeometry[] {
+export default function getLineGeometries(positionList: THREE.Vector3[], config?: LineGeometriesConfig): THREE.BufferGeometry[] {
   if (positionList.length < 2) {
     console.warn('positionList length must be greater than 1')
     return []
@@ -28,12 +31,12 @@ export default function getLineGeometries(
 
   const unitWidth = config?.unitWidth ?? 0.5
   const unitHeight = config?.unitHeight ?? 0.5
-  const skipPosition = config?.skipPosition ?? false
+  const skipPanoIndexMesh = config?.skipPanoIndexMesh ?? false
 
   // 点位组成的平滑曲线
   const curve = new THREE.CatmullRomCurve3(positionList, false, 'catmullrom', 1)
 
-  if (skipPosition) {
+  if (skipPanoIndexMesh) {
     // 曲线切片数
     const divisions = Math.ceil((curve.getLength() / unitHeight) * 1.5) // 一个箭头切1.5点（切几个随意，越多越精准）
 

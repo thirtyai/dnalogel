@@ -1,4 +1,4 @@
-import type { Five, Pose, State } from '@realsee/five'
+import type { Five, Pose, State, Mode } from '@realsee/five'
 import type { BaseOptions } from '../base/BasePlugin'
 import * as BasePluginWithData from '../base/BasePluginWithData'
 import { GuideLinePlugin, GuideLinePluginExportType } from '../GuideLinePlugin'
@@ -11,6 +11,7 @@ import { vectorToCoordinates } from './utils/vectorToCoordinates'
 import * as THREE from 'three'
 import linerValue from './utils/linerValue'
 import { sleep } from './utils/sleep'
+import type { Config } from '../base/BasePlugin'
 
 const VERSION = 'v1.0.6'
 
@@ -55,6 +56,8 @@ export default class CruisePluginController extends BasePluginWithData.Controlle
 
   protected data?: PluginData
 
+  private config?: Config
+
   private privateState: {
     /**
      * privateState.playing 和 state.playing 的区别：
@@ -72,18 +75,21 @@ export default class CruisePluginController extends BasePluginWithData.Controlle
     disposers: (() => void)[]
     playId?: string
     moveToFirstPanoEffect?: MoveEffect
+    modeChanging?: boolean
   } = {
     playing: false,
     currentPlayQueue: [],
     currentPlayKeyframe: null,
     broke: false,
     disposers: [],
+    modeChanging: false,
   }
 
   private GuideLine?: GuideLinePluginExportType
 
-  public constructor(five: Five) {
-    super(five)
+  public constructor(five: Five, config?: Config) {
+    super(five, config)
+    this.config = config
     Object.assign(window, { [`__${PLUGIN_NAME}_DEBUG__`]: this })
 
     const setFiveLinearUpdateCamera = this.setFiveLinearUpdateCamera.bind(this)
@@ -130,7 +136,7 @@ export default class CruisePluginController extends BasePluginWithData.Controlle
     // filter panoIndex list Data
     const hasPanoIndexKeyframes = this.data.keyframes.filter((keyframe) => keyframe.data.panoIndex !== undefined)
     hasPanoIndexKeyframes
-      .filter((keyframe, index) => keyframe.data.panoIndex !== hasPanoIndexKeyframes[index - 1]?.data.panoIndex)
+      .filter((keyframe, index) => keyframe.data.panoIndex !== hasPanoIndexKeyframes[index - 1]?.data.panoIndex) // filter repeat panoIndex
       .map((keyframe) => keyframe.data.panoIndex!)
       .forEach((panoIndex) => {
         const floorIndex = this.five.work.observers[panoIndex]?.floorIndex
@@ -146,7 +152,7 @@ export default class CruisePluginController extends BasePluginWithData.Controlle
       })
 
     // initialize GuideLinePlugin
-    if (!this.GuideLine) this.GuideLine = GuideLinePlugin(this.five)
+    if (!this.GuideLine) this.GuideLine = GuideLinePlugin(this.five, this.config)
 
     // load GuideLine
     this.GuideLine?.load({ routes: guideLinePanoIndex.map((route) => ({ panoIndexList: route })) })
@@ -299,10 +305,10 @@ export default class CruisePluginController extends BasePluginWithData.Controlle
       const { moveEffect, moveToFirstPanoEffect } = data
       this.privateState.moveToFirstPanoEffect = moveToFirstPanoEffect
       data.panoIndexList
-        .filter((panoIndex, index) => panoIndex !== data.panoIndexList[index - 1])
+        // .filter((panoIndex, index) => panoIndex !== data.panoIndexList[index - 1]) // remove the repeat panoIndex
         .forEach((panoIndex, index) => {
           const lookatNextPanoIndex = (() => {
-            const nextPanoIndex = data.panoIndexList[index + 1]
+            const nextPanoIndex = data.panoIndexList.slice(index).find((p) => p !== panoIndex) // find next different panoIndex
             if (nextPanoIndex === undefined) return
             const vectorFrom = observers[panoIndex]?.position
             const vectorTo = observers[nextPanoIndex]?.position
@@ -483,11 +489,16 @@ export default class CruisePluginController extends BasePluginWithData.Controlle
    * @description: listen interupted by five gesture
    */
   private addInterruptListener(callback: () => void) {
-    this.five.once('gesture', callback)
-    this.five.once('modeChange', callback)
+    const wantsChangeModeHandler = () => {
+      if (!this.privateState.modeChanging) callback()
+    }
+    const gestureHandler = callback
+
+    this.five.once('gesture', gestureHandler)
+    this.five.once('wantsChangeMode', wantsChangeModeHandler)
     return () => {
-      this.five.off('gesture', callback)
-      this.five.once('modeChange', callback)
+      this.five.off('gesture', gestureHandler)
+      this.five.once('wantsChangeMode', wantsChangeModeHandler)
     }
   }
 
@@ -615,6 +626,9 @@ export default class CruisePluginController extends BasePluginWithData.Controlle
     const { five, privateState, state } = this
     if (typeof data.panoIndex !== 'number') return
     if (data.panoIndex === five.panoIndex) return
+    const mode = five.getCurrentState().mode
+    const willChangeMode = five.getCurrentState().mode !== 'Panorama'
+    if (willChangeMode) this.privateState.modeChanging = true
     let originDuration = params?.duration ?? 800
     const speed = (() => {
       const speedConfig = state.config?.speedConfig
@@ -632,7 +646,8 @@ export default class CruisePluginController extends BasePluginWithData.Controlle
     }
     if (privateState.currentPlayKeyframe) privateState.currentPlayKeyframe.originDuration = originDuration
     const duration = this.getSpeededDuration(originDuration)
-    return new Promise<void>((resolve) => {
+
+    await new Promise<void>((resolve) => {
       five.moveToPano(data.panoIndex!, {
         latitude: data.latitude,
         longitude: data.longitude,
@@ -642,7 +657,11 @@ export default class CruisePluginController extends BasePluginWithData.Controlle
         moveCancelCallback: () => resolve(),
         moveEndCallback: () => resolve(),
       })
+      // 兼容five bug：模型走点不会触发 moveEndCallback
+      if (willChangeMode) five.once('panoArrived', () => resolve())
     })
+
+    if (willChangeMode) this.privateState.modeChanging = false
   }
 
   /**
@@ -682,7 +701,10 @@ export default class CruisePluginController extends BasePluginWithData.Controlle
    */
   private async changeMode(data: Partial<State>, duration?: number) {
     if (data.mode && data.mode !== this.five.currentMode) {
+      this.privateState.modeChanging = true
+      console.log('this.privateState.modeChanging', this.privateState.modeChanging)
       await this.five.changeMode(data.mode, data, duration)
+      this.privateState.modeChanging = false
     }
   }
 

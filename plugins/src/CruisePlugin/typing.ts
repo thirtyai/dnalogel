@@ -1,6 +1,7 @@
 import type { MovePanoOptions, Pose, State } from '@realsee/five'
 import type CruisePlugin from '.'
 import type * as BasePluginWithData from '../base/BasePluginWithData'
+import type { Route } from '../GuideLinePlugin/typing'
 
 type FivePoseAndState = Partial<Pose> & Partial<State>
 
@@ -64,6 +65,10 @@ export interface PluginServerData extends BasePluginWithData.ServerData {
         moveType?: 'justMove' | 'moveAndRotate'
         /** 停留时长 */
         stay?: number
+        /** 传递给 GuildPlugin 的参数 */
+        guildPluginOptions?: {
+          route: Omit<Route, 'panoIndexList'>
+        }
         /** for ts check, no care */
         keyframes?: undefined
       }

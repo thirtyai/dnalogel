@@ -52,3 +52,9 @@ export * from './GuideLinePlugin'
 
 // 漫游插件
 export * from './CruisePlugin'
+
+// 全景标签插件
+export * from './PanoTagPlugin'
+
+// 三维物体编辑插件
+export * from './Object3DHelperPlugin'

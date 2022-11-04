@@ -67,7 +67,8 @@ export function closestPointOnLine(point: Point, linePoints: Point[]) {
   const tLenSq = tC * tC + tD * tD
   const tParam = tDot / tLenSq
 
-  let tXx, tYy
+  let tXx
+  let tYy
 
   if (tParam < 0 || samePointAt(linePoints[0], linePoints[1])) {
     tXx = linePoints[0].x
@@ -103,7 +104,8 @@ export function pointDistanceFromLine(point: Point, linePoints: Point[]) {
  */
 export function linesWithDistanceOfLine(distanceOfLine: number, linePoints: Point[]) {
   const k = getK(linePoints[1], linePoints[0])
-  let dx, dy
+  let dx
+  let dy
   if (Math.abs(k) === Infinity) {
     dy = 0
     dx = distanceOfLine
@@ -146,9 +148,7 @@ export function linesWithDistanceOfLineWithCurve(distanceOfLine: number, linePoi
   const centerPoint = getCenterPointOfPoints(linePoints)
   const pHelfDistance = distance(linePoints[0], centerPoint)
   const cDistance = Math.sqrt(curve * curve - pHelfDistance * pHelfDistance)
-  const cpoint = isNaN(cDistance)
-    ? centerPoint
-    : linesWithDistanceOfLine(cDistance, [centerPoint, linePoints[0]])[curve > 0 ? 0 : 1][0]
+  const cpoint = isNaN(cDistance) ? centerPoint : linesWithDistanceOfLine(cDistance, [centerPoint, linePoints[0]])[curve > 0 ? 0 : 1][0]
 
   const dx1 = ((linePoints[0].x - cpoint.x) / curve) * distanceOfLine
   const dy1 = ((linePoints[0].y - cpoint.y) / curve) * distanceOfLine
@@ -185,7 +185,7 @@ export function intersectionOfLine(linePoints1: Point[], linePoints2: Point[], n
   if (pointOnLine(linePoints2[0], linePoints1)) return linePoints2[0]
   if (pointOnLine(linePoints2[1], linePoints1)) return linePoints2[1]
 
-  //needIntersectionInLine 是否焦点在线段内
+  // needIntersectionInLine 是否焦点在线段内
   if (needIntersectionInLine && !isIntersect(linePoints1, linePoints2)) return false
 
   const p1 = linePoints1[0]
@@ -245,10 +245,10 @@ export function pointRotateByCenterPoint(point: Point, centerPoint: Point, rad: 
  * @return {point}
  */
 export function getCenterPointOfPoints(points: Point[]) {
-  let minX = Infinity,
-    maxX = 0,
-    minY = Infinity,
-    maxY = 0
+  let minX = Infinity
+  let maxX = 0
+  let minY = Infinity
+  let maxY = 0
   points.forEach((point) => {
     minX = Math.min(minX, point.x)
     maxX = Math.max(maxX, point.x)

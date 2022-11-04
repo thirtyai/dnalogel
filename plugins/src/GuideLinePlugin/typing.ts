@@ -4,6 +4,9 @@ import type * as BasePluginWithData from '../base/BasePluginWithData'
 export interface Route {
   panoIndexList: number[]
   arrowTextureUrl?: string
+  skipPanoIndexMesh?: boolean
+  unitWidth?: number
+  unitHeight?: number
 }
 
 export interface PluginData {

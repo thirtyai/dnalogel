@@ -1,8 +1,7 @@
-import CSS3DRenderPlugin from './Plugin'
+import type { Five, FivePlugin } from '@realsee/five'
+import Controller from './Controller'
+export * from './typing'
 
-export { CSS3DRenderPlugin }
+export const CSS3DRenderPlugin: FivePlugin<void, InstanceType<typeof Controller>> = (five: Five) => new Controller(five)
+
 export default CSS3DRenderPlugin
-
-export type {
-    CSS3DRenderPluginExportType
-} from './Plugin'

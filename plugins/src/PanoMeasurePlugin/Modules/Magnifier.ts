@@ -2,7 +2,6 @@ import type { Five } from '@realsee/five'
 
 import Hammer from 'hammerjs'
 import * as THREE from 'three'
-import { Rectangle } from '../../shared-utils'
 import { Subscribe, SubscribeEventMap } from '@realsee/five'
 
 /** 交换数组元素 */
@@ -169,13 +168,7 @@ export default class Magnifier {
     const readPixelsRadio = pixelRatio * scale
     const x = ((position2d.x + 1) / 2) * renderSize.x
     const y = ((position2d.y + 1) / 2) * renderSize.y
-    const pixels = this.five.getPixels(
-      x - readPixelsWidth / 2,
-      y - readPixelsWidth / 2,
-      readPixelsWidth,
-      readPixelsHeight,
-      readPixelsRadio,
-    )
+    const pixels = this.five.getPixels(x - readPixelsWidth / 2, y - readPixelsWidth / 2, readPixelsWidth, readPixelsHeight, readPixelsRadio)
     // 最后生成的图像大小是 [width * pixelRatio, height * pixelRatio]
     // 绘制在[width, height]的区域上
     const imageWidth = Math.floor(width * pixelRatio)

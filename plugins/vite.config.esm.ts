@@ -12,7 +12,6 @@ const jsFiles = glob.sync(path.resolve(__dirname, './src/**/*.js'))
 const svelteFiles = glob.sync(path.resolve(__dirname, './src/**/*.svelte'))
 const files = [...jsFiles, ...svelteFiles, ...tsFiles]
 
-
 // https://vitejs.dev/config/
 export default defineConfig(() => {
   return {
@@ -27,28 +26,22 @@ export default defineConfig(() => {
         formats: ['es'],
       },
       rollupOptions: {
-        external: ['three', '@realsee/five', 'three/examples/jsm/renderers/CSS3DRenderer', 'three/examples/jsm/loaders/FBXLoader', '@realsee/five/line', '@tweenjs/tween.js'],
+        external: ['three', '@realsee/five', 'three/examples/jsm/renderers/CSS3DRenderer', 'three/examples/jsm/loaders/FBXLoader', '@realsee/five/line'],
         input: files,
         output: {
           entryFileNames: (entry) => {
             /** {@link https://github.com/vitejs/vite/discussions/8098} */
-            const { name, facadeModuleId } = entry;
-            const fileName = `${name}.js`;
+            const { name, facadeModuleId } = entry
+            const fileName = `${name}.js`
             if (!facadeModuleId) {
-              return fileName;
+              return fileName
             }
-            const relativeDir = path.relative(
-              path.resolve(__dirname, 'src'),
-              path.dirname(facadeModuleId),
-            );
-            return path.join(relativeDir, fileName);
+            const relativeDir = path.relative(path.resolve(__dirname, 'src'), path.dirname(facadeModuleId))
+            return path.join(relativeDir, fileName)
           },
         },
       },
     },
-    plugins: [ svelte({ emitCss: false }) as any ]
+    plugins: [svelte({ emitCss: false }) as any],
   }
 })
-
-
-

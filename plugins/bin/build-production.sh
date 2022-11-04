@@ -29,4 +29,6 @@ BUILD_MODULE=components vite build --mode=production
 # for downward compatibility
 cp dist/index.es.js dist/index.js
 
+npm run docs
+
 rm -rf temp

@@ -19,7 +19,6 @@ export abstract class BasePanoPluginController<
     this.five.once('dispose', this.dispose)
     this.enabled = true
     this.state = this.initState()
-    console.log('base controller')
   }
 
   /**

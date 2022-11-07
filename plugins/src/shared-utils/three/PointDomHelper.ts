@@ -17,17 +17,19 @@ export class PointDomHelper {
 
   public constructor(five: Five) {
     this.five = five
+    // TODO: 改成参数传入
+    const width = 0.4
+    const radius = width / 2
 
     const css3DRenderPlugin = CSS3DRenderPlugin(five)
     const res = css3DRenderPlugin.create3DDomContainer(
       [
-        [-0.15, 0.15, 0],
-        [-0.15, -0.15, 0],
-        [0.15, -0.15, 0],
-        [0.15, 0.15, 0],
+        [-radius, radius, 0],
+        [-radius, -radius, 0],
+        [radius, -radius, 0],
+        [radius, radius, 0],
       ].map((item) => new THREE.Vector3().fromArray(item)),
     )
-    console.log('🚀 ~ res', res)
     if (res) {
       const { container, dispose, css3DObject } = res
       this.container = container

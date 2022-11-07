@@ -26,8 +26,9 @@ export interface MouseGroupParameter {
 }
 
 function createPlaneMesh() {
+  // TODO: 改成参数传入
   // 底部纹理贴图面片
-  const planGeometry = new THREE.PlaneGeometry(0.3, 0.3)
+  const planGeometry = new THREE.PlaneGeometry(0.4, 0.4)
   const planTextureUrl = POINT_HELPER_TEXTURE_URL
   const planTexture = new THREE.TextureLoader().load(planTextureUrl)
   planTexture.encoding = THREE.sRGBEncoding

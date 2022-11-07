@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 2.1.1
+- 1. feat: PointHelper 和 PointDomHelper 直径改成 0.4m。
+
 ## 2.1.0
 - 1. feat: CSS3DRenderPlugin API支持插件3.0标准
 - 2. refactor: CSS3DRenderPlugin 重构，提供不依赖Five的内部类

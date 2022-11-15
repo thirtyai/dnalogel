@@ -33,6 +33,7 @@ export const ModelChassisCompassPlugin: FivePlugin<
   ModelChassisCompassPluginExportType
 > = (five: Five, params) => {
   const defaultFbxUrl = params.fbx_url || '//vrlab-static.ljcdn.com/release/web/v3/dipan3/dipan.FBX'
+  
   const defaultNorthRad = params.north_rad ?? undefined
 
   // 局部状态

@@ -1,0 +1,41 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "pipeline": {
+    "dev": {
+      "cache": false
+    },
+    "build": {
+      "outputs": [
+        "dist/**",
+        "libs/**",
+        "components/**"
+      ]
+    },
+    "docs": {
+      "outputs": [
+        "docs/**"
+      ]
+    },
+    "deploy": {},
+    "@realsee/dnalogel-examples#build": {
+      "outputs": [
+        "dist/**"
+      ],
+      "dependsOn": [
+        "@realsee/dnalogel#build"
+      ]
+    },
+    "@realsee/dnalogel#build": {
+      "outputs": [
+        "dist/**",
+        "libs/**",
+        "components/**"
+      ]
+    },
+    "@realsee/dnalogel-examples#deploy": {
+      "dependsOn": [
+        "@realsee/dnalogel-examples#build"
+      ]
+    }
+  }
+}

@@ -1,5 +1,5 @@
 <p align="center">
-	<a href="https://realsee.js.org/"><img src="https://vrlab-public.ljcdn.com/common/file/web/ea031fa5-ad82-46b3-86c8-7b20ec1e635a.jpg" width="60" /></a>
+ <a href="https://realsee.js.org/"><img src="https://vrlab-public.ljcdn.com/common/file/web/ea031fa5-ad82-46b3-86c8-7b20ec1e635a.jpg" width="60" /></a>
 </p>
 
 <p align="center">
@@ -19,7 +19,7 @@
 # 👀 Overview
 
 @realsee/dnalogel 将 [如视(realsee.com)](https://realsee.com) **VR 看房** 常用能力沉淀，并以 `Five Plugins` 形式进行抽象。
-结合[如视 VR 看房 SDK Five](https://open-platform.realsee.com/developer/docs/front/3d-space/get-started/rendering-engine/) 
+结合[如视 VR 看房 SDK Five](https://open-platform.realsee.com/developer/docs/front/3d-space/get-started/rendering-engine/)
 与 [如视开放 API](https://open-platform.realsee.com/developer/open/api/#/) ,可以制作出丰富多彩的三维空间应用。不论是经过线上环境千锤百炼的刚需功能，还是灵感一现的炫酷尝试，所有已经落地的功能我们均毫无保留的开源至github [realsee-developer/dnalogel](https://github.com/realsee-developer/dnalogel) 。
 
 # 🔨 Usage
@@ -32,15 +32,6 @@ npm install @realsee/dnalogel
 
 ```bash
 yarn add @realsee/dnalogel
-```
-
-2.x 版本依赖 `svelte`， 使用时请同时安装:
-```bash
-npm install svelte 
-```
-
-```bash
-yarn add svelte 
 ```
 
 **2、插件注册**
@@ -80,7 +71,6 @@ five.plugins.PluginName.dispose()
 我们为每个插件书写了简单的效果示例，您可点击预览：
 [@realsee/dnalogel showcase](https://realsee.js.org/dnalogel/)
 
-
 # 🧾 Lists
 
 - 🔌 ModelViewPlugin：模型小窗插件
@@ -96,5 +86,51 @@ five.plugins.PluginName.dispose()
 - 🔌 PanoCompassPlugin：全景指南针插件
 - 其他插件持续更新中...
 
+# 可能遇到的问题
+
+1. webpack打包出现以下错误
+
+```bash
+Module not found: Error: Can't resolve '@realsee/five/line' in 'xxx/node_modules/@realsee/dnalogel/libs'
+Did you mean 'index.js'?
+BREAKING CHANGE: The request '@realsee/five/line' failed to resolve only because it was resolved as fully specified
+(probably because the origin is strict EcmaScript Module, e. g. a module with javascript mimetype, a '*.mjs' file, or a '*.js' file where the package.json contains '"type": "module"').
+The extension in the request is mandatory for it to be fully specified.
+Add the extension to the request.
+```
+
+解决方案：在webpack配置里加以下rule
+参考：[resolvefullyspecified](https://webpack.js.org/configuration/module/#resolvefullyspecified)
+
+```js
+{
+  test: /\.m?js$/,
+  resolve: {
+    fullySpecified: false, // disable the behaviour
+  },
+},
+```
+
+2. webpack4出现以下错误：
+
+```bash
+Error: Can't resolve 'swiper/css' in 'xxx/node_modules/@realsee/dnalogel/libs
+Error: Can't resolve 'swiper/css/autoplay' in 'xxx/node_modules/@realsee/dnalogel/libs
+```
+
+解决方案：在webpack配置里加以下alias
+
+```js
+  alias: {
+    // swiper 使用exports声明导出，webpack4还不支持，需要用alias处理，并且要从子路径开始，否则父路径会覆盖子路径
+    'swiper/css/autoplay': path.resolve(
+      __dirname,
+      'node_modules/swiper/modules/autoplay/autoplay.min.css'
+    ),
+    'swiper/css': path.resolve(__dirname, 'node_modules/swiper/swiper.min.css'),
+  },
+```
+
 # License
+
 [TERMS](https://github.com/realsee-developer/dnalogel/blob/main/plugins/TERMS.txt)

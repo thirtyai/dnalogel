@@ -19,7 +19,9 @@
     ],
     "overrides": [
         {
-            "files": ["*.svelte"],
+            "files": [
+                "*.svelte"
+            ],
             "parser": "svelte-eslint-parser",
             "parserOptions": {
                 "parser": "@typescript-eslint/parser" // Parse the `<script>` in `.svelte` as TypeScript
@@ -35,5 +37,8 @@
         "svelte/no-at-html-tags": "off",
         "no-inner-declarations": "off",
         "no-unused-vars": "warn"
-    }
+    },
+    "ignorePatterns": [
+        "!src/**/*.*"
+    ]
 }

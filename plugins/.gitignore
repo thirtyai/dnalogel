@@ -26,9 +26,10 @@ docs
 temp
 node_modules
 /components
-dist
-libs
+/dist
+/libs
 dist-ssr
 *.local
-
+/esm
+/types
 mocks

@@ -1,17 +1,13 @@
 {
-  "name": "root",
+  "name": "@realsee/dnalogel-root",
   "private": true,
-  "workspaces": [
-    "plugins",
-    "examples"
-  ],
   "scripts": {
-    "dev": "sh ./bin/dev.sh",
-    "build": "npm run build:plugins && npm run build:examples",
-    "build:plugins": "cd plugins && npm run build",
-    "build:examples": "cd examples && npm run build",
-    "docs": "cd plugins && npm run docs",
-    "deploy": "sh deploy.sh",
-    "test": "sh test.sh"
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "docs": "turbo run docs",
+    "deploy": "turbo run deploy"
+  },
+  "devDependencies": {
+    "turbo": "^1.6.3"
   }
 }

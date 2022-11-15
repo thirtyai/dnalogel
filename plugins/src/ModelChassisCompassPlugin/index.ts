@@ -1,6 +1,7 @@
 import ModelChassisCompassPlugin from './Plugin'
 
 export { ModelChassisCompassPlugin }
+
 export default ModelChassisCompassPlugin
 
 export type {

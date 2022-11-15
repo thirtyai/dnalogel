@@ -1,6 +1,7 @@
 import CameraMovementPlugin from "./CameraMovementPlugin";
 
 export { CameraMovementPlugin }
+
 export default CameraMovementPlugin
 
 export type {

@@ -6,7 +6,7 @@ import * as Controller from './Controller'
 export type {
   FloorplanServerData,
   FloorplanServerRoomItem,
-} from 'src/floorplan/typings/floorplanServerData'
+} from '../floorplan/typings/floorplanServerData'
 
 const PanoDoorLabelPlugin: FivePlugin<FloorplanServerData, PanoDoorLabelPluginController> = (
   five: Five,

@@ -5,11 +5,12 @@ set -e
 
 rm -rf online
 
-# 构建
-npm run build
+mkdir -p online/dnalogel
 
 # 移动数据文件夹
-cp -r examples/open-works online/dnalogel/
+cp -r open-works online/dnalogel/
+
+cp -r dist/* online/dnalogel/
 
 # 进入构建文件夹
 cd online/dnalogel

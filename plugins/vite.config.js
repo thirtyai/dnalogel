@@ -80,7 +80,7 @@ export default defineConfig(({ mode }) => {
       chunkSizeWarningLimit: Infinity,
       watch: isEnvDevelopment
         ? {
-            buildDelay: 1000, // milliseconds
+            buildDelay: 300, // milliseconds
           }
         : null,
     },

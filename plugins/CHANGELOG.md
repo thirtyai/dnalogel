@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 2.2.1
+- 1. fix(floorplan-radar): 修复在 panoArrived 之后 loadData 时初始展示楼层只会是一层的问题。
+
 ## 2.2.0
 
 - 1. refactor: 开发/构建流程优化

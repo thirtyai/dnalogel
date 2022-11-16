@@ -13,7 +13,7 @@
   export let extraObjects: FloorplanExtraObject[] = []
 
   let pxmm = 0
-  let floorIndex = 0
+  let floorIndex = five.work.observers[five.getCurrentState().panoIndex]?.floorIndex ?? 0
   let clientWidth = 0
   let clientHeight = 0
   let contentWidth = 0

@@ -1,9 +1,6 @@
 import type { Five } from '@realsee/five'
 import type { BaseOptions, EventMap, State } from '../base/BasePlugin'
-import type {
-  FloorplanServerData,
-  FloorplanServerRoomItem,
-} from '../floorplan/typings/floorplanServerData'
+import type { FloorplanServerData, FloorplanServerRoomItem } from '../floorplan/typings/floorplanServerData'
 import { Euler, Quaternion, Raycaster, Vector3 } from 'three'
 import { BasePanoPluginController } from './BaseController'
 import DoorLabelItem from './DoorLabelItem.svelte'
@@ -16,10 +13,7 @@ const defaultBaseOptions: BaseOptions = { userAction: true }
  * 分间标签插件
  * @author kyleju
  */
-export class PanoDoorLabelPluginController extends BasePanoPluginController<
-  State,
-  EventMap<State>
-> {
+export class PanoDoorLabelPluginController extends BasePanoPluginController<State, EventMap<State>> {
   private MinVisibledistance = 1.8
   private MaxVisibledistance = 5
   private OffsetHeight = -1.3 // 标签页面高度偏移值
@@ -43,10 +37,7 @@ export class PanoDoorLabelPluginController extends BasePanoPluginController<
     super(five)
   }
 
-  public loadData = (
-    floorplanServerData: FloorplanServerData,
-    doorLabelConfig?: DoorLabelConfig,
-  ) => {
+  public loadData = (floorplanServerData: FloorplanServerData, doorLabelConfig?: DoorLabelConfig) => {
     if (doorLabelConfig) {
       this.MaxVisibledistance = doorLabelConfig.MaxVisibledistance
       this.MinVisibledistance = doorLabelConfig.MinVisibledistance
@@ -251,17 +242,20 @@ export class PanoDoorLabelPluginController extends BasePanoPluginController<
         const rectDom2 = this.container.children[idx2]
         if (!rectDom1 || !rectDom2) return
 
+        // fix: rectDom1.children[0]为undefined的情况
+        if (!rectDom1?.children?.[0] || !rectDom2?.children?.[0]) return
+
         const rect1 = {
           left: (canvasWidth * l1) / 100,
           top: (canvasHeight * t1) / 100,
-          width: rectDom1.children[0].clientWidth,
-          height: rectDom1.children[0].clientHeight,
+          width: rectDom1.children[0]?.clientWidth ?? 0,
+          height: rectDom1.children[0]?.clientHeight ?? 0,
         }
         const rect2 = {
           left: (canvasWidth * l2) / 100,
           top: (canvasHeight * t2) / 100,
-          width: rectDom2.children[0].clientWidth,
-          height: rectDom2.children[0].clientHeight,
+          width: rectDom2.children[0]?.clientWidth ?? 0,
+          height: rectDom2.children[0]?.clientHeight ?? 0,
         }
         if (isTwoRectOverlaped(rect1, rect2)) {
           heightLevel++
@@ -316,9 +310,7 @@ export class PanoDoorLabelPluginController extends BasePanoPluginController<
     this.doorLabels = []
     const pano_index = this.five.panoIndex
     const floor_index = this.floorplanServerData.computed_data.observers[pano_index].floor_index
-    const rooms =
-      floor_index !== undefined &&
-      this.floorplanServerData.computed_data.floor_datas[floor_index]?.rooms
+    const rooms = floor_index !== undefined && this.floorplanServerData.computed_data.floor_datas[floor_index]?.rooms
     this.rooms = rooms
     if (this.rooms && this.rooms.length > 0) {
       this.rooms.forEach((room) => {
@@ -377,7 +369,7 @@ export class PanoDoorLabelPluginController extends BasePanoPluginController<
       cameraToward: '',
     }))
 
-    console.log('doorplugin', 'labelItems', this.labelItems)
+    // console.log('doorplugin', 'labelItems', this.labelItems)
 
     this.five.on('wantsToMoveToPano', this.hideAllLabels)
     this.five.on('modelLoaded', this.fixDoorVisibleAndPosition)

@@ -242,20 +242,17 @@ export class PanoDoorLabelPluginController extends BasePanoPluginController<Stat
         const rectDom2 = this.container.children[idx2]
         if (!rectDom1 || !rectDom2) return
 
-        // fix: rectDom1.children[0]为undefined的情况
-        if (!rectDom1?.children?.[0] || !rectDom2?.children?.[0]) return
-
         const rect1 = {
           left: (canvasWidth * l1) / 100,
           top: (canvasHeight * t1) / 100,
-          width: rectDom1.children[0]?.clientWidth ?? 0,
-          height: rectDom1.children[0]?.clientHeight ?? 0,
+          width: rectDom1.children?.[0]?.clientWidth ?? 0,
+          height: rectDom1.children?.[0]?.clientHeight ?? 0,
         }
         const rect2 = {
           left: (canvasWidth * l2) / 100,
           top: (canvasHeight * t2) / 100,
-          width: rectDom2.children[0]?.clientWidth ?? 0,
-          height: rectDom2.children[0]?.clientHeight ?? 0,
+          width: rectDom2.children?.[0]?.clientWidth ?? 0,
+          height: rectDom2.children?.[0]?.clientHeight ?? 0,
         }
         if (isTwoRectOverlaped(rect1, rect2)) {
           heightLevel++

@@ -5,10 +5,7 @@ import { BaseOptions, Controller, EventMap, State } from '../base/BasePlugin'
  * pano plugin controller 基类
  * @author kyleju
  */
-export abstract class BasePanoPluginController<
-  T extends State,
-  E extends EventMap<T>,
-> extends Controller<T, E> {
+export abstract class BasePanoPluginController<T extends State, E extends EventMap<T>> extends Controller<T, E> {
   public state: T
   public container: Element
   public enabled: boolean

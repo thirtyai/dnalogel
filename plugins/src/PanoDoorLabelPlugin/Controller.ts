@@ -53,10 +53,15 @@ export class PanoDoorLabelPluginController extends BasePanoPluginController<Stat
     this.doorLabelItems = []
 
     this.floorplanServerData = floorplanServerData
-    this.five.once('panoArrived', () => {
-      console.log('doorplugin', 'panoArrived')
-      this.initData()
-    })
+    // this.initData()
+    if (typeof this.five.ready === 'function') {
+      this.five.ready().then(() => this.initData())
+    } else {
+      this.five.once('panoArrived', () => {
+        // console.log('doorplugin', 'panoArrived')
+        this.initData()
+      })
+    }
   }
 
   public stateChangedCallback(prevState: State, options?: BaseOptions) {
@@ -273,15 +278,16 @@ export class PanoDoorLabelPluginController extends BasePanoPluginController<Stat
     let nearestIndex
     let nearestVector
     let minDistance = Infinity
-    for (let index = 0; index < work.observers.length; index++) {
-      if (this.roomObservers[index].name !== roomName) continue
-      const observer = work.observers[index]
-      const observerPoint = observer.standingPosition
-      const distance = position.distanceTo(observerPoint)
-      if (distance < minDistance) {
-        nearestIndex = index
-        nearestVector = observerPoint.clone().sub(position).normalize()
-        minDistance = distance
+    for (const observer of work.observers) {
+      const roomObserver = this.roomObservers.find((ro) => ro.panoIndex === observer.panoIndex && ro.name === roomName)
+      if (roomObserver) {
+        const observerPoint = observer.standingPosition
+        const distance = position.distanceTo(observerPoint)
+        if (distance < minDistance) {
+          nearestIndex = observer.panoIndex
+          nearestVector = observerPoint.clone().sub(position).normalize()
+          minDistance = distance
+        }
       }
     }
 

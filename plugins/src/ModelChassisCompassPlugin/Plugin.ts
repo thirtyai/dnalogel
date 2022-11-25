@@ -2,7 +2,7 @@ import type { Five, FivePlugin } from '@realsee/five'
 import * as THREE from 'three'
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader'
 import object3d2LocalMatrix from '../shared-utils/object3d2LocalMatrix'
-import transfromToMeshBasicMaterial from '../shared-utils/three/transfromToMeshBasicMaterial'
+import transformToMeshBasicMaterial from '../shared-utils/three/transformToMeshBasicMaterial'
 
 export interface ModelChassisCompassPluginParameterType {
   north_rad?: number
@@ -28,12 +28,12 @@ export interface ModelChassisCompassPluginExportType {
 /**
  * 模型底盘指南针插件
  */
-export const ModelChassisCompassPlugin: FivePlugin<
-  ModelChassisCompassPluginParameterType,
-  ModelChassisCompassPluginExportType
-> = (five: Five, params) => {
+export const ModelChassisCompassPlugin: FivePlugin<ModelChassisCompassPluginParameterType, ModelChassisCompassPluginExportType> = (
+  five: Five,
+  params,
+) => {
   const defaultFbxUrl = params.fbx_url || '//vrlab-static.ljcdn.com/release/web/v3/dipan3/dipan.FBX'
-  
+
   const defaultNorthRad = params.north_rad ?? undefined
 
   // 局部状态
@@ -55,7 +55,7 @@ export const ModelChassisCompassPlugin: FivePlugin<
     const fbxLoader = new FBXLoader()
     const object: THREE.Group = await fbxLoader.loadAsync(fbxUrl)
 
-    transfromToMeshBasicMaterial(object, {
+    transformToMeshBasicMaterial(object, {
       transparent: true,
       side: THREE.DoubleSide,
       blending: THREE.AdditiveBlending,

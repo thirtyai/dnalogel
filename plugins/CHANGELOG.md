@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 2.2.6
+- 1. feat(entry-door): 入户门插件支持配置 name。
+
 ## 2.2.1
 - 1. fix(floorplan-radar): 修复在 panoArrived 之后 loadData 时初始展示楼层只会是一层的问题。
 

@@ -5,7 +5,7 @@ import * as THREE from 'three'
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader'
 import createCanvasTextTexture from '../shared-utils/createCanvasTextTexture'
 import transformPositionToVector3 from '../shared-utils/three/transformPositionToVector3'
-import transfromToMeshBasicMaterial from '../shared-utils/three/transfromToMeshBasicMaterial'
+import transformToMeshBasicMaterial from '../shared-utils/three/transformToMeshBasicMaterial'
 
 export interface ModelEntryDoorGuidePluginData {
   position?: Vector3Position
@@ -15,6 +15,8 @@ export interface ModelEntryDoorGuidePluginData {
 
 export type ModelEntryDoorGuidePluginParameterType = {
   animationEnabled?: boolean
+  // 入户门名称
+  name?: string
 } & ModelEntryDoorGuidePluginData
 
 interface ModelEntryDoorGuidePluginPluginState {
@@ -33,10 +35,10 @@ export interface ModelEntryDoorGuidePluginExportType {
 /**
  * 模型入户门引导插件
  */
-export const ModelEntryDoorGuidePlugin: FivePlugin<
-  ModelEntryDoorGuidePluginParameterType,
-  ModelEntryDoorGuidePluginExportType
-> = (five: Five, params) => {
+export const ModelEntryDoorGuidePlugin: FivePlugin<ModelEntryDoorGuidePluginParameterType, ModelEntryDoorGuidePluginExportType> = (
+  five: Five,
+  params,
+) => {
   // 局部状态
   const state: ModelEntryDoorGuidePluginPluginState = {}
 
@@ -48,12 +50,12 @@ export const ModelEntryDoorGuidePlugin: FivePlugin<
 
   const load = async (data?: Partial<ModelEntryDoorGuidePluginData>) => {
     const position = data?.position ?? defaultModelPosition
-    if (!position) return Promise.reject(`ModelEntryDoorGuidePlugin.load(): position is undefined`)
+    if (!position) return Promise.reject(new Error(`ModelEntryDoorGuidePlugin.load(): position is undefined`))
     const modelPosition = transformPositionToVector3(position)
     const rad = data?.rad ?? defaultRad
     const fbxUrl = data?.fbx_url ?? defaultFbxUrl
     state.rad = rad
-    if (rad === undefined) return Promise.reject(`ModelEntryDoorGuidePlugin.load(): rad is ${rad}`)
+    if (rad === undefined) return Promise.reject(new Error(`ModelEntryDoorGuidePlugin.load(): rad is ${rad}`))
 
     // 加载模型
     const object: THREE.Group = await new FBXLoader().loadAsync(fbxUrl)
@@ -63,12 +65,13 @@ export const ModelEntryDoorGuidePlugin: FivePlugin<
     object.rotation.z = rad
     object.scale.set(0.8, 0.8, 0.8)
 
-    transfromToMeshBasicMaterial(object, { transparent: true, side: THREE.DoubleSide })
+    transformToMeshBasicMaterial(object, { transparent: true, side: THREE.DoubleSide })
 
     const textMesh = (object.children?.[0]?.children?.[3] as THREE.Mesh | undefined)?.clone()
-    if (!textMesh) return Promise.reject(`ModelEntryDoorGuidePlugin.load(): textMesh is ${textMesh}`)
+    if (!textMesh) return Promise.reject(new Error(`ModelEntryDoorGuidePlugin.load(): textMesh is ${textMesh}`))
 
-    textMesh.material = new MeshBasicMaterial({ transparent: true, map: createCanvasTextTexture('入户门') })
+    const name = params.name ?? '入户门'
+    textMesh.material = new MeshBasicMaterial({ transparent: true, map: createCanvasTextTexture(name) })
     textMesh.renderOrder = 3
     object.children[0].add(textMesh)
     state.object = object

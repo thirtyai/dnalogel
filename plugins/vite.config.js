@@ -70,8 +70,8 @@ export default defineConfig(({ mode }) => {
       chunkSizeWarningLimit: Infinity,
       watch: isEnvDevelopment
         ? {
-          buildDelay: 300, // milliseconds
-        }
+            buildDelay: 300, // milliseconds
+          }
         : null,
     },
     optimizeDeps: {
@@ -143,8 +143,8 @@ export default defineConfig(({ mode }) => {
             lib: {
               entry: Object.fromEntries(
                 glob
-                  .sync(path.resolve(appSrc, './**/*.*'))
-                  .filter((filepath) => /\.(j|t)s(x)|\.svelte/.test(filepath) && !filepath.endsWith('.d.ts'))
+                  .sync(path.resolve(appSrc, './**/**Plugin/*.*'))
+                  .filter((filepath) => /\.js(x)?|\.(m)?js|\.ts(x)?|\.svelte$/.test(filepath) && !filepath.endsWith('.d.ts'))
                   .map((file) => [
                     // This remove `src/` as well as the file extension from each file, so e.g.
                     // src/nested/foo.js becomes nested/foo

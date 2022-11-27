@@ -3,7 +3,6 @@
   "main": "./dist/index.js",
   "module": "./libs/index.js",
   "types": "./libs/index.d.ts",
-  "type": "module",
   "author": "REALSEE-DEVELOPER",
   "repository": "https://github.com/realsee-developer/dnalogel.git",
   "description": "如视 VR 看房插件合集",

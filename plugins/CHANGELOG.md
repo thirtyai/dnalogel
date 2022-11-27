@@ -1,5 +1,7 @@
 # CHANGELOG
 
+## 2.2.7
+- 1. fix(build:libs): 修复libs构建产物异常的问题。
 ## 2.2.6
 - 1. feat(entry-door): 入户门插件支持配置 name。
 

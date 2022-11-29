@@ -121,8 +121,8 @@ export class CSS3DRender {
   private _scene?: THREE.Scene
 
   private store: {
-    frontModeGroup: THREE.Group
-    behindModeGroup?: THREE.Group
+    frontModeGroup: CSS3DFrontGroup
+    behindModeGroup?: CSS3DBehindGroup
   } = {
     frontModeGroup: new CSS3DFrontGroup(),
   }
@@ -376,12 +376,12 @@ export class CSS3DRender {
   }
 
   public render(camera: THREE.Camera) {
-    if (this.getFrontCSS3DObjectGroup({ addGroupIfNotExists: false }).children.length > 0) {
+    if (this.getFrontCSS3DObjectGroup({ addGroupIfNotExists: false }).CSS3DObjectLength > 0) {
       const css3DScene = this.getFrontCSS3DScene({ createSceneIfNotExists: true })
       if (!css3DScene) return console.error(`${PLUGIN}: css3DScene is required when mode is front`)
       globalStore.frontModeStore.css3DRenderer.renderEveryFrame(css3DScene, camera)
     }
-    if ((this.getBehindCSS3DObjectGroup({ addGroupIfNotExists: false })?.children.length ?? 0) > 0) {
+    if ((this.getBehindCSS3DObjectGroup({ addGroupIfNotExists: false })?.CSS3DObjectLength ?? 0) > 0) {
       const css3DScene = this.getBehindCSS3DScene({ createSceneIfNotExists: true })
       if (!css3DScene) return console.error(`${PLUGIN}: css3DScene is required when mode is behind`)
       globalStore.behindModeStore.css3DRenderer.renderEveryFrame(css3DScene, camera)
@@ -399,13 +399,13 @@ export class CSS3DRender {
   }
 
   private async handleShow() {
-    this.store.frontModeGroup.visible = true
-    if (this.store.behindModeGroup) this.store.behindModeGroup.visible = true
+    this.store.frontModeGroup.setVisible(true)
+    this.store.behindModeGroup?.setVisible(true)
   }
 
   private async handleHide() {
-    this.store.frontModeGroup.visible = false
-    if (this.store.behindModeGroup) this.store.behindModeGroup.visible = false
+    this.store.frontModeGroup.setVisible(false)
+    this.store.behindModeGroup?.setVisible(false)
   }
 
   private handleEnable() {

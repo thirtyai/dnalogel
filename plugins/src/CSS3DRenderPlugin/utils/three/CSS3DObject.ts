@@ -3,8 +3,8 @@ import { Matrix4, Quaternion, Vector3 } from 'three'
 import { even } from '../even'
 import { centerPoint } from '../centerPoint'
 import { Subscribe } from '../../../shared-utils/Subscribe'
-import * as THREE from 'three'
 import OpacityMesh from './OpacityMesh'
+import type { CSS3DGroup } from './CSS3DGroup'
 
 /**
  * @changelog
@@ -48,7 +48,18 @@ export class CSS3DObjectPlus<T extends HTMLElement = HTMLElement> extends CSS3DO
 
   public opacityMesh?: OpacityMesh
 
-  public constructor(params: { container: T; mode?: 'front' | 'behind', cornerPoints: CornerPoints; ratio?: number; dpr?: number; pointerEvents?: 'none' | 'auto' }) {
+  private selfVisible = true
+
+  private parentVisibleListenerDisposer?: () => void
+
+  public constructor(params: {
+    container: T
+    mode?: 'front' | 'behind'
+    cornerPoints: CornerPoints
+    ratio?: number
+    dpr?: number
+    pointerEvents?: 'none' | 'auto'
+  }) {
     const container = params.container
     const cornerPoints = params.cornerPoints
     const ratio = params.ratio ?? DefaultRatio
@@ -134,9 +145,22 @@ export class CSS3DObjectPlus<T extends HTMLElement = HTMLElement> extends CSS3DO
 
     // set position
     this.position.copy(centerPosition)
+
+    // listener
+
+    this.addEventListener('added', () => {
+      if (this.mode === 'front') this.opacityMesh?.removeFromParent()
+      this.addParentVisibleListener()
+    })
+
+    this.addEventListener('removed', () => {
+      this.opacityMesh?.removeFromParent()
+      this.removeParentVisibleListener()
+    })
   }
 
-  public setVisible(visible: boolean) {
+  public setVisible(visible: boolean, params: { setSelfVisible: boolean } = { setSelfVisible: true }) {
+    if (params.setSelfVisible) this.selfVisible = visible
     this.visible = visible
     if (this.opacityMesh) this.opacityMesh.visible = visible
   }
@@ -197,5 +221,20 @@ export class CSS3DObjectPlus<T extends HTMLElement = HTMLElement> extends CSS3DO
     mesh.rotation.copy(css3DObject.rotation)
     mesh.scale.copy(css3DObject.scale)
     return mesh
+  }
+
+  private addParentVisibleListener = () => {
+    if ((this.parent as any)?.isCSS3DGroup) {
+      const parent = this.parent as CSS3DGroup
+      const handler = (parentVisible: boolean) => {
+        this.setVisible(parentVisible && this.selfVisible, { setSelfVisible: false })
+      }
+      parent.hooks.on('visibleChange', handler)
+      this.parentVisibleListenerDisposer = () => parent.hooks.off('visibleChange', handler)
+    }
+  }
+
+  private removeParentVisibleListener = () => {
+    this.parentVisibleListenerDisposer?.()
   }
 }

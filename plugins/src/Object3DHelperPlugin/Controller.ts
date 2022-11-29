@@ -8,9 +8,12 @@ import { FiveControllerWrapper } from './FiveControllerWrapper'
 import { Object3DHelper } from '../shared-utils/Object3DHelper'
 import { RotateController } from '../shared-utils/Object3DHelper/Controller/RotateController'
 import { CSS3DScaleController } from '../shared-utils/Object3DHelper/Controller/CSS3DScaleController'
-import type { Object3DHelperState, Object3DHelperEventMap } from '../shared-utils/Object3DHelper/typings'
+import type { Object3DHelperState } from '../shared-utils/Object3DHelper/typings'
 import type { Object3DHelperPluginEventMap, Object3DHelperPluginState } from './typings'
-import type { CSS3DObjectPlus } from '../CSS3DRenderPlugin/utils/CSS3DObjectPlus'
+import type { CSS3DObjectPlus } from '../CSS3DRenderPlugin/utils/three/CSS3DObject'
+import { CSS3DRender } from '../CSS3DRenderPlugin/CSS3DRender'
+import fiveModelLoaded from '../CSS3DRenderPlugin/utils/waitFiveModelLoaded'
+import generateBehindFiveElement from '../CSS3DRenderPlugin/utils/generateBehindFiveElement'
 
 export const VERSION = 'v1.0.0'
 
@@ -41,9 +44,15 @@ export class Object3DHelperController extends BasePlugin.Controller<Object3DHelp
 
   public objectHelperMap: Map<THREE.Object3D, Object3DHelper> = new Map()
 
+  private css3DObjectParentMap: Map<THREE.Object3D, THREE.Object3D | null> = new Map()
+
+  private css3DRender: CSS3DRender
+
   public constructor(five: Five) {
     super(five)
     this.five = five
+    this.css3DRender = new CSS3DRender(this.five.scene)
+
     console.warn('Object3DHelper: 使用此插件需要在初始化five时，设置five参数: { backgroundAlpha: 0, backgroundColor: 0x000000 }')
     Object.assign(window, { [`__${PLUGIN_NAME.toUpperCase()}_DEBUG__`]: this })
     // Object.assign(window, { THREE: THREE })
@@ -152,7 +161,19 @@ export class Object3DHelperController extends BasePlugin.Controller<Object3DHelp
       }
     }
     if ((object3D as any).isCSS3DObjectPlus) {
-      ;(object3D as CSS3DObjectPlus).changeMode('behind', this.five.scene)
+      fiveModelLoaded(this.five).then(() => {
+        const css3DObject = object3D as CSS3DObjectPlus
+        const wrapper = this.css3DRender.behindModeCSS3DRenderer.wrapper ?? generateBehindFiveElement(this.five)
+        if (wrapper) {
+          // 移除
+          this.css3DObjectParentMap.set(css3DObject, css3DObject.parent)
+          css3DObject.removeFromParent()
+          // 添加
+          this.css3DRender.behindModeCSS3DRenderer.setWrapper(wrapper)
+          this.css3DRender.getBehindCSS3DObjectGroup()?.add(css3DObject)
+          this.css3DRender.render(this.five.camera)
+        }
+      })
     }
     // if (mergeConfig.outlineHelper) {
     //   const outlineHelper = new OutlineHelper(object3D)
@@ -166,7 +187,11 @@ export class Object3DHelperController extends BasePlugin.Controller<Object3DHelp
     const helper = this.objectHelperMap.get(object3D)
     if (!helper) return
     if ((object3D as any).isCSS3DObjectPlus) {
-      ;(object3D as CSS3DObjectPlus).changeMode('front')
+      const css3DObject = object3D as CSS3DObjectPlus
+      const parent = this.css3DObjectParentMap.get(css3DObject)
+      parent?.add(css3DObject)
+      this.css3DRender.render(this.five.camera)
+      // ;(object3D as CSS3DObjectPlus).changeMode('front')
     }
     this.objectHelperMap.delete(object3D)
     helper.dispose()

@@ -1,11 +1,11 @@
-import { CSS3DRender, __ELEMENT__ } from '../../../CSS3DRenderPlugin/CSS3DRender'
+import { CSS3DRender } from '../../../CSS3DRenderPlugin/CSS3DRender'
 import * as THREE from 'three'
 import { RectangleScaleHelperAbstract } from '.'
 import type { Create3DElementReturnType } from '../../../CSS3DRenderPlugin'
 import type { Vector3 } from 'three'
 import { CSS3DObject } from 'three/examples/jsm/renderers/CSS3DRenderer'
 import { rectangleScaleDom, backgroundDom } from './HTML/rectangleScaleDom'
-import type { CSS3DObjectPlus } from '../../../CSS3DRenderPlugin/utils/CSS3DObjectPlus'
+import type { CSS3DObjectPlus } from '../../../CSS3DRenderPlugin/utils/three/CSS3DObject'
 import getPoint from '../utils/getPoint'
 
 type NonVoid<T> = T extends void ? never : T
@@ -24,10 +24,10 @@ export class RectangleScaleHelper<T extends OriginObjectType = OriginObjectType>
   private css3DRenderer = new CSS3DRender()
   private camera: THREE.Camera
   private scene: THREE.Scene
-  private container: Element
+  private container: HTMLElement
   private enabled = false
 
-  public constructor(originObject3D: T, container: Element, camera: THREE.Camera, scene: THREE.Scene) {
+  public constructor(originObject3D: T, container: HTMLElement, camera: THREE.Camera, scene: THREE.Scene) {
     super(originObject3D)
     this.camera = camera
     this.scene = scene

@@ -3,6 +3,8 @@ import type * as THREE from 'three'
 import type { Five } from '@realsee/five'
 import { CSS3DRender, CSS3DRenderEventMap, CSS3DRenderState } from './CSS3DRender'
 import type { AnyPosition } from './utils'
+import fiveModelLoaded from './utils/waitFiveModelLoaded'
+import generateBehindFiveElement from './utils/generateBehindFiveElement'
 
 const VERSION = 'v2.0.1'
 
@@ -81,7 +83,7 @@ export default class Controller extends CSS3DRender implements BasePlugin.Contro
   public create3DDomContainer = (points: Create3DDomContainerParamsType['points'], config?: Create3DDomContainerParamsType['config']) => {
     if (this.state.disposed) return undefined
     // ==== init ====
-    const mergeConfig = (() => {
+    const params = (() => {
       if (config?.dpr !== undefined) console.warn(`${PLUGIN_NAME}: please use "config.devicePixelRatio" replace "config.dpr"`)
       const defaultconfig = {
         ratio: 0.00216,
@@ -104,59 +106,43 @@ export default class Controller extends CSS3DRender implements BasePlugin.Contro
       return undefined
     }
 
-    const { autoRender, mode } = mergeConfig
+    const { autoRender } = params
+
+    if (params.mode === 'behind' && params.behindFiveContainer) {
+      this.behindFiveContainer = params.behindFiveContainer
+    }
 
     // 自动添加dom
-    const wrapper = mode === 'front' ? fiveElement.parentElement : mergeConfig.behindFiveContainer
-    this.setContainer(wrapper || document.body, 'front')
-    const behindFiveElement = this.getBehindFiveElement()
-    if (behindFiveElement) this.setContainer(behindFiveElement, 'behind')
-    this.appendToElement(wrapper || document.body, mode)
-
-    const create3DElementResault = this.create3DElement(this.five.camera, points, { ...mergeConfig, autoRender: false })
+    const create3DElementResault = this.create3DElement(this.five.camera, points, { ...params, autoRender: false })
     if (!create3DElementResault) return undefined
 
-    const oldRender = create3DElementResault.render!
-    const newRender = () => {
-      if (mode === 'front') {
+    const oldRender = () => {
+      const wrapper = create3DElementResault.css3DObject.mode === 'front' ? fiveElement.parentElement : this.getBehindFiveElement()
+      if (!wrapper) return console.error(`${PLUGIN_NAME}: wrapper is ${wrapper}`)
+      create3DElementResault.appendToElement(wrapper)
+      create3DElementResault.render!()
+    }
+    const render = () => {
+      if (create3DElementResault.css3DObject.mode === 'front') {
         oldRender()
       }
-      if (mode === 'behind') {
-        if (this.five.model?.loaded) oldRender()
-        else this.five.once('modelLoaded', () => oldRender())
+      if (create3DElementResault.css3DObject.mode === 'behind') {
+        fiveModelLoaded(this.five).then(() => {
+          oldRender()
+        })
       }
     }
 
-    if (autoRender) newRender()
+    if (autoRender) render()
 
-    return { ...create3DElementResault, ...{ render: autoRender ? undefined : newRender } }
+    return { ...create3DElementResault, ...{ render: autoRender ? undefined : render } }
   }
 
-  private getBehindFiveElement() {
-    const { behindFiveContainer } = this
-    if (behindFiveContainer) return behindFiveContainer
-    const behindFiveElement = document.createElement('div')
-    behindFiveElement.style.position = 'absolute'
-    behindFiveElement.style.pointerEvents = 'none'
-    behindFiveElement.style.top = '0'
-    behindFiveElement.style.left = '0'
-    behindFiveElement.style.width = '100%'
-    behindFiveElement.style.height = '100%'
-    this.behindFiveContainer = behindFiveElement
-    const fiveElement = this.five.getElement()
-    if (!fiveElement) return
-    const fiveElementPosition = fiveElement?.style.position ?? getComputedStyle(fiveElement)
-    if (!fiveElementPosition || fiveElementPosition === 'static') {
-      console.warn(
-        'if you want to use css3DRenderPlugin behind mode, five element position is static, please set position to relative or absolute',
-      )
-    }
-    const fiveParent = fiveElement?.parentElement
-    if (fiveParent) {
-      fiveParent.insertBefore(behindFiveElement, fiveElement)
-      return behindFiveElement
-    } else {
-      return
+  public getBehindFiveElement() {
+    if (this.behindFiveContainer) return this.behindFiveContainer
+    else {
+      this.behindFiveContainer = generateBehindFiveElement(this.five)
+      return this.behindFiveContainer
     }
   }
 }

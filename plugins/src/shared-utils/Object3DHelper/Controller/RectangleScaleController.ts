@@ -4,7 +4,7 @@ import * as THREE from 'three'
 import { getMouseRaycaster, vectorIsEqual } from '../utils'
 import type { Direction4 } from '../typings'
 import { Vector3 } from 'three'
-import type { CSS3DObjectPlus } from '../../../CSS3DRenderPlugin/utils/CSS3DObjectPlus'
+import type { CSS3DObjectPlus } from '../../../CSS3DRenderPlugin/utils/three/CSS3DObject'
 
 interface StartInfo {
   startPoint: {

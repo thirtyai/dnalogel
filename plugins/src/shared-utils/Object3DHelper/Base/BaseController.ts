@@ -4,7 +4,7 @@ import type { HelperEventMap } from '../typings'
 import type { BaseHelper } from './BaseHelper'
 import DomEvents from '../utils/threex/domevents'
 import { notNil } from '../../isNil'
-import { CSS3DObjectPlus } from '../../../CSS3DRenderPlugin/utils/CSS3DObjectPlus'
+import { CSS3DObjectPlus } from '../../../CSS3DRenderPlugin/utils/three/CSS3DObject'
 
 export let originOpacity: {
   opacity: number

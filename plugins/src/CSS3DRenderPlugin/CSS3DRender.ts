@@ -1,21 +1,28 @@
-import * as THREE from 'three'
+import type * as THREE from 'three'
 import type { Vector3 } from 'three'
-import { CSS3DRenderer } from 'three/examples/jsm/renderers/CSS3DRenderer'
+import { ICSS3DRenderer as CSS3DRenderer } from './utils/three/CSS3DRenderer'
 import type { Merge } from 'type-fest'
 import { Subscribe } from '../shared-utils/Subscribe'
-import { AnyPosition, anyPositionToVector3, evenNumber } from './utils'
-import { CSS3DObjectPlus, Mode } from './utils/CSS3DObjectPlus'
-export { MinRatio } from './utils/CSS3DObjectPlus'
+import { AnyPosition, anyPositionToVector3 } from './utils'
+import { CSS3DObjectPlus } from './utils/three/CSS3DObject'
+import { CSS3DBehindScene, CSS3DFrontScene } from './utils/three/CSS3DScene'
+import { CSS3DBehindGroup, CSS3DFrontGroup } from './utils/three/CSS3DGroup'
+import { CSS3DObject } from 'three/examples/jsm/renderers/CSS3DRenderer'
+export { MinRatio } from './utils/three/CSS3DObject'
 
-const VERSION = 'v2.0.1'
+/**
+ * @changelog
+ *  - v3: 重构
+ */
+const VERSION = 3
 
 const PLUGIN_NAME = 'CSS3DRenderer'
 
-export const __ELEMENT__ = '__CSS3DOBJECT_CSS3DRENDER_CONTAINER__'
-
 export const PLUGIN = `${PLUGIN_NAME}@${VERSION}`
 
-const pluginFlag = (name: string) => `${PLUGIN}--${name}`
+const disposedErrorLog = () => {
+  console.error(`${PLUGIN} is disposed`)
+}
 
 export interface CSS3DRenderState {
   enabled: boolean
@@ -60,24 +67,44 @@ export const globalStore: {
     observe: () => void
     unobserve: () => void
   }
-  frontModeContainer?: Element
-  behindModeContainer?: Element
-  frontModeStore?: {
-    css3DScene: THREE.Scene
+  css3DObjects: CSS3DObjectPlus[]
+  frontModeStore: {
+    css3DScene?: CSS3DFrontScene
     css3DRenderer: CSS3DRenderer
-    requestAnimationFrameId?: number
-    appendedToPage?: boolean
+    container?: HTMLElement
   }
-  behindModeStore?: {
-    scene: THREE.Scene
-    css3DScene: THREE.Scene
+  behindModeStore: {
+    css3DScene?: CSS3DBehindScene
     css3DRenderer: CSS3DRenderer
-    requestAnimationFrameId?: number
-    appendedToPage?: boolean
+    container?: HTMLElement
+    scene?: THREE.Scene
   }
-} = {}
+} = {
+  css3DObjects: [],
+  frontModeStore: {
+    css3DRenderer: new CSS3DRenderer(),
+  },
+  behindModeStore: {
+    css3DRenderer: new CSS3DRenderer(),
+  },
+}
+
+function getCSS3DObjectById(id: number) {
+  return globalStore.css3DObjects.find((c) => c.id === id)
+}
+
+function setFrontModeContainer(container: HTMLElement) {
+  globalStore.frontModeStore.css3DRenderer.setWrapper(container)
+}
+function setBehindModeContainer(container: HTMLElement) {
+  globalStore.behindModeStore.css3DRenderer.setWrapper(container)
+}
 
 export class CSS3DRender {
+  public static setFrontModeContainer = setFrontModeContainer
+
+  public static setBehindModeContainer = setBehindModeContainer
+
   public hooks: Subscribe<CSS3DRenderEventMap> = new Subscribe()
 
   public state: CSS3DRenderState = {
@@ -86,36 +113,43 @@ export class CSS3DRender {
     disposed: false,
   }
 
-  private store: {
-    rendered: boolean
-    disposers: (() => any)[]
+  public get scene() {
+    if (!this._scene) console.error("scene doesn't exist!, please call setScene(scene) first")
+    return this._scene
+  }
 
-    frontModeCSS3DObjects: Record<
-      string,
-      {
-        mode: 'front'
-        css3DObject: CSS3DObjectPlus
-        visible: boolean
-        enabled: boolean
-        opacityMesh?: THREE.Mesh
-      }
-    >
-    behindModeCSS3DObjects: Record<
-      string,
-      {
-        mode: 'behind'
-        css3DObject: CSS3DObjectPlus
-        visible: boolean
-        enabled: boolean
-        opacityMesh: THREE.Mesh
-        scene: THREE.Scene
-      }
-    >
+  private _scene?: THREE.Scene
+
+  private store: {
+    frontModeGroup: THREE.Group
+    behindModeGroup?: THREE.Group
   } = {
-    rendered: false,
-    disposers: [],
-    frontModeCSS3DObjects: {},
-    behindModeCSS3DObjects: {},
+    frontModeGroup: new CSS3DFrontGroup(),
+  }
+
+  public static get frontModeCSS3DRenderer() {
+    return globalStore.frontModeStore.css3DRenderer
+  }
+
+  public static get behindModeCSS3DRenderer() {
+    return globalStore.behindModeStore.css3DRenderer
+  }
+
+  public get frontModeCSS3DRenderer() {
+    return globalStore.frontModeStore.css3DRenderer
+  }
+
+  public get behindModeCSS3DRenderer() {
+    return globalStore.behindModeStore.css3DRenderer
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-useless-constructor
+  public constructor(scene?: THREE.Scene) {
+    if (scene) this.setScene(scene)
+  }
+
+  public setScene(scene: THREE.Scene) {
+    this._scene = scene
   }
 
   public getCurrentState() {
@@ -123,7 +157,7 @@ export class CSS3DRender {
   }
 
   public setState(state: Partial<CSS3DRenderState>, options: { userAction: boolean } = { userAction: true }) {
-    if (this.state.disposed) return this.disposedErrorLog()
+    if (this.state.disposed) return disposedErrorLog()
     const prevState = { ...this.state }
     this.state = Object.assign(this.state, state)
     if (prevState.visible !== this.state.visible) {
@@ -132,36 +166,37 @@ export class CSS3DRender {
     if (prevState.enabled !== this.state.enabled) {
       state.enabled ? this.handleEnable() : this.handleDisable()
     }
+    if (prevState.disposed !== this.state.disposed) {
+      this.handleDispose()
+    }
     this.hooks.emit('stateChange', { state: this.state, prevState, userAction: options.userAction })
   }
 
   public dispose() {
-    this.store.disposers.forEach((d) => d?.())
-    this.store.disposers = []
+    this.setState({ disposed: true })
     this.hooks.emit('dispose')
-    this.state.disposed = true
   }
 
   public async show({ userAction } = { userAction: true }) {
-    if (this.state.disposed) return this.disposedErrorLog()
+    if (this.state.disposed) return disposedErrorLog()
     this.setState({ visible: true }, { userAction })
     this.hooks.emit('show', { userAction })
   }
 
   public async hide({ userAction } = { userAction: true }) {
-    if (this.state.disposed) return this.disposedErrorLog()
+    if (this.state.disposed) return disposedErrorLog()
     this.setState({ visible: false }, { userAction })
     this.hooks.emit('hide', { userAction })
   }
 
   public enable({ userAction } = { userAction: true }) {
-    if (this.state.disposed) return this.disposedErrorLog()
+    if (this.state.disposed) return disposedErrorLog()
     this.setState({ enabled: true }, { userAction })
     this.hooks.emit('enable', { userAction })
   }
 
   public disable({ userAction } = { userAction: true }) {
-    if (this.state.disposed) return this.disposedErrorLog()
+    if (this.state.disposed) return disposedErrorLog()
     this.setState({ enabled: false }, { userAction })
     this.hooks.emit('disable', { userAction })
   }
@@ -169,8 +204,8 @@ export class CSS3DRender {
   /**
    * @description 根据传入的四个点位创建一个 3d dom容器，可以通过ReactDom.render()的方式将react组件放到容器中
    * @param { Vector3Position[] } points 矩形四个点坐标
-   * @param config 均为可选值
-   * @config_document `config` 均为可选值
+   * @param params 均为可选值
+   * @config_document `params` 均为可选值
    *  | key                   | type                       | defaultValue        | comment |
    *  | -                     | -                          | -                   | -       |
    *  | `ratio`               | *`number`*                 | `0.00216`           | 1px对应多少米，默认为 0.00216，即1px对应2.16mm |
@@ -203,11 +238,11 @@ export class CSS3DRender {
   public create3DElement = (
     camera: THREE.Camera,
     points: Create3DDElementParamsType['points'],
-    config?: Create3DDElementParamsType['config'],
+    params?: Create3DDElementParamsType['config'],
   ) => {
-    if (this.state.disposed) return this.disposedErrorLog()
+    if (this.state.disposed) return disposedErrorLog()
     // ==== init ====
-    const mergeConfig = (() => {
+    const config = (() => {
       const defaultConfig = {
         ratio: 0.00216,
         devicePixelRatio: 1,
@@ -216,402 +251,184 @@ export class CSS3DRender {
         container: document.createElement('div'),
         pointerEvents: 'none',
       }
-      return Object.assign(defaultConfig, config) as Merge<typeof defaultConfig, typeof config>
+      return Object.assign(defaultConfig, params) as Merge<typeof defaultConfig, typeof params>
     })()
 
     const vector3Points = points.map(anyPositionToVector3) as [Vector3, Vector3, Vector3, Vector3]
     if (vector3Points?.length < 4) return console.error(`${PLUGIN}: requires 4 point but params may have fewer`)
 
-    const { ratio, devicePixelRatio: dpr, mode, autoRender, container, pointerEvents } = mergeConfig
-    const disposers: (() => any)[] = []
+    const { ratio, devicePixelRatio: dpr, mode, autoRender, container, pointerEvents } = config
     // ==== init END ====
 
-    // 获取css3DObject, 如果mode为behind的话，也一起获取mesh
-    const { css3DObject, opacityMesh } = this.createObject(vector3Points, { ratio, dpr, container, mode, pointerEvents })
-    container.id = `container--${css3DObject.uuid}`
+    const css3DObject = this.createObject(vector3Points, { ratio, dpr, container, mode, pointerEvents })
 
-    const frontModeAndFrontModeUnInited = mode === 'front' && !globalStore.frontModeStore
-    const behindModeAndBehindModeUnInited = mode === 'behind' && !globalStore.behindModeStore
-    if (mode === 'front') this.initGlobalModeStore('front')
-    if (mode === 'behind') this.initGlobalModeStore('behind', mergeConfig.scene)
+    globalStore.css3DObjects.push(css3DObject)
 
-    // change mode 监听
-    css3DObject.hooks.on('changeMode', (mode, prevMode, scene) => {
-      if (mode === prevMode) return
+    if (config.scene) this.setScene(config.scene)
 
-      if (mode === 'front') this.initGlobalModeStore('front')
-      if (mode === 'behind') this.initGlobalModeStore('behind', scene!)
-      const prevGlobalModeStore = prevMode === 'front' ? globalStore.frontModeStore : globalStore.behindModeStore
-      const nextGlobalModeStore = mode === 'front' ? globalStore.frontModeStore : globalStore.behindModeStore
-      const prevObjects = prevMode === 'behind' ? this.store.behindModeCSS3DObjects : this.store.frontModeCSS3DObjects
-      const nextObjects = mode === 'behind' ? this.store.behindModeCSS3DObjects : this.store.frontModeCSS3DObjects
-
-      if (!prevObjects || !nextObjects) return console.error(`${PLUGIN}: changeMode error: prevObjects or nextObjects is undefined`)
-      const prevObject = prevObjects[css3DObject.uuid]
-      if (!prevObject) return console.error(`${PLUGIN}: changeMode error: prevObject is undefined`)
-
-      // if (!autoRender && !this.store.rendered) return console.warn(`autoRender is ${autoRender}, please call render() manually`)
-      if (mode === 'behind') {
-        const opacityMesh = prevObject.opacityMesh ?? this.createOpacityMesh(prevObject.css3DObject)
-        prevGlobalModeStore?.css3DScene.remove(prevObject.css3DObject)
-        nextObjects[css3DObject.uuid] = { css3DObject, opacityMesh, visible: true, enabled: true, mode, scene: scene! }
-        nextGlobalModeStore?.css3DScene.add(css3DObject)
-        scene?.add(opacityMesh)
-      }
-      if (mode === 'front') {
-        prevGlobalModeStore?.css3DScene.remove(prevObject.css3DObject)
-        ;(prevObjects[css3DObject.uuid] as any | undefined)?.scene?.remove(prevObject.opacityMesh)
-        nextObjects[css3DObject.uuid] = { css3DObject, visible: true, enabled: true, mode }
-        nextGlobalModeStore?.css3DScene.add(css3DObject)
-      }
-      if (mode === 'behind') this.appendToElement(globalStore.behindModeContainer, 'behind')
-      if (mode === 'front') this.appendToElement(globalStore.frontModeContainer, 'front')
-      this.render(camera)
-      console.log('change success')
-    })
-
-    const modeStore = mode === 'front' ? globalStore.frontModeStore! : globalStore.behindModeStore!
-    const { css3DScene, css3DRenderer } = modeStore
-    const render = (() => {
-      const renderCSS3DObject = () => {
-        const mode = css3DObject.mode
-        if (mode === 'front') {
-          this.store.frontModeCSS3DObjects[css3DObject.uuid] = {
-            visible: true,
-            enabled: true,
-            css3DObject,
-            mode: 'front',
-          }
-        } else {
-          if (!mergeConfig.scene) return
-          this.store.behindModeCSS3DObjects[css3DObject.uuid] = {
-            visible: true,
-            enabled: true,
-            css3DObject,
-            opacityMesh: opacityMesh!,
-            mode: 'behind',
-            scene: mergeConfig.scene,
-          }
-        }
-        if (!css3DScene.getObjectById(css3DObject.id)) {
-          css3DScene.add(css3DObject)
-        }
-        if (mode === 'behind' && opacityMesh) {
-          if (!mergeConfig.scene?.getObjectById(opacityMesh.id)) {
-            mergeConfig.scene?.add(opacityMesh)
-          }
-          disposers.push(() => opacityMesh && mergeConfig.scene?.remove(opacityMesh))
-        }
-      }
-      if (frontModeAndFrontModeUnInited || behindModeAndBehindModeUnInited) {
-        css3DRenderer.domElement.style.position = 'absolute'
-        css3DRenderer.domElement.style.top = '0'
-        css3DRenderer.domElement.style.userSelect = 'none'
-        css3DRenderer.domElement.style.pointerEvents = 'none'
-        css3DRenderer.domElement.classList.add(pluginFlag(mode))
-        return () => {
-          renderCSS3DObject()
-          this.render(camera)
-        }
-      }
-      this.store.rendered = true
-      return () => renderCSS3DObject()
-    })()
-
-    const wrapper = mode === 'front' ? globalStore.frontModeContainer : globalStore.behindModeContainer
-    if (wrapper) {
-      this.appendToElement(wrapper, mode)
-      const store = mode === 'front' ? globalStore.frontModeStore : globalStore.behindModeStore
-      if (store) store.appendedToPage = true
+    const renderCSS3DObject = () => {
+      const group = css3DObject.mode === 'front' ? this.getFrontCSS3DObjectGroup() : this.getBehindCSS3DObjectGroup()
+      if (!group) return
+      group.add(css3DObject)
     }
 
-    const setVisible = (visible: boolean) => this.setVisibleById(css3DObject.uuid, visible)
+    const render = () => {
+      renderCSS3DObject()
+      this.render(camera)
+    }
 
-    const setEnabled = (enabled: boolean) => this.setEnabledById(css3DObject.uuid, enabled)
-
-    const show = () => setVisible(true)
-
-    const hide = () => setVisible(false)
-
-    const enable = () => setEnabled(true)
-
-    const disable = () => setEnabled(false)
-
+    const setVisible = (visible: boolean) => this.setVisibleById(css3DObject.id, visible)
+    const setEnabled = (enabled: boolean) => this.setEnabledById(css3DObject.id, enabled)
     const dispose = () => {
-      delete this.store.frontModeCSS3DObjects[css3DObject.uuid]
-      delete this.store.behindModeCSS3DObjects[css3DObject.uuid]
-      disposers.forEach((d) => d?.())
-      css3DScene.remove(css3DObject)
-      // 如果全没了，就清除父容器
-      if (css3DScene.children.length === 0) {
-        if (typeof modeStore.requestAnimationFrameId === 'number') {
-          cancelAnimationFrame(modeStore.requestAnimationFrameId)
-        }
-        css3DRenderer.domElement.remove()
-        if (mode === 'front') globalStore.frontModeStore = undefined
-        if (mode === 'behind') globalStore.behindModeStore = undefined
-        globalStore.frontModeResizeObserver = undefined
-        globalStore.behindModeResizeObserver = undefined
-      }
+      css3DObject.removeFromParent()
       return true
     }
-    this.store.disposers.push(dispose)
+
+    const css3DRenderer = mode === 'front' ? globalStore.frontModeStore.css3DRenderer : globalStore.behindModeStore.css3DRenderer
+
     if (autoRender) render()
+
     return {
       id: css3DObject.uuid,
       container,
-      dispose,
       css3DObject,
       render: autoRender ? undefined : render,
-      show,
-      hide,
+      show: () => setVisible(true),
+      hide: () => setVisible(false),
       setVisible,
-      disable,
-      enable,
+      enable: () => setEnabled(true),
+      disable: () => setEnabled(false),
       setEnabled,
-      appendToElement: (container: Element) => this.appendToElement(container, mode),
+      dispose,
+      appendToElement: (element: HTMLElement) => css3DRenderer.setWrapper(element),
     }
   }
 
-  public setContainer(container: Element, mode: Mode) {
-    if (mode === 'front') {
-      globalStore.frontModeContainer = container
-    } else {
-      globalStore.behindModeContainer = container
+  public getFrontCSS3DScene({ createSceneIfNotExists = false } = {}) {
+    const css3DScene = globalStore.frontModeStore?.css3DScene
+    if (css3DScene) return css3DScene
+    else {
+      // not exists
+      if (createSceneIfNotExists) {
+        const css3DFrontScene = new CSS3DFrontScene()
+        globalStore.frontModeStore.css3DScene = css3DFrontScene
+      }
+      return globalStore.frontModeStore.css3DScene
     }
   }
 
-  public appendToElement(container: Element | undefined, mode: Mode) {
-    const store = mode === 'front' ? globalStore.frontModeStore : globalStore.behindModeStore
-    if (!store) {
-      if (mode === 'front' && !globalStore.frontModeContainer) {
-        if (!container) throw new Error(`${PLUGIN} Cannot append to container: front mode but container is ${container}`)
-        globalStore.frontModeContainer = container
+  public getBehindCSS3DScene({ createSceneIfNotExists = false } = {}) {
+    const css3DScene = globalStore.behindModeStore?.css3DScene
+    if (css3DScene) return css3DScene
+    else {
+      // not exists
+      if (createSceneIfNotExists) {
+        const s = globalStore.behindModeStore.scene ?? this.scene
+        if (!s) {
+          console.error(`${PLUGIN}: scene is required when mode is behind`)
+          return
+        }
+        const css3DBehindScene = new CSS3DBehindScene(s)
+        globalStore.behindModeStore.css3DScene = css3DBehindScene
+        globalStore.behindModeStore.scene = s
       }
-      if (mode === 'behind' && !globalStore.behindModeContainer) {
-        if (!container) throw new Error(`${PLUGIN} Cannot append to container: behind mode but container is ${container}`)
-        globalStore.behindModeContainer = container
-      }
-      return
-    }
-    if (store.appendedToPage) return
-
-    const wrapper = mode === 'behind' ? globalStore.behindModeContainer : globalStore.frontModeContainer
-
-    if (!wrapper) return console.error('wrapper is undefined')
-
-    wrapper.appendChild(store.css3DRenderer.domElement)
-
-    if (mode === 'behind' && !globalStore.behindModeResizeObserver) {
-      const reSize = (width: number, height: number) => {
-        globalStore.behindModeStore?.css3DRenderer.setSize(width, height)
-      }
-      const { observe, unobserve } = this.createResizeObserver(wrapper, reSize, true)
-      globalStore.behindModeResizeObserver = { observe, unobserve }
-      observe()
-      this.store.disposers.push(unobserve)
-    }
-
-    if (mode === 'front' && !globalStore.frontModeResizeObserver) {
-      const reSize = (width: number, height: number) => {
-        globalStore.frontModeStore?.css3DRenderer.setSize(width, height)
-      }
-      const { observe, unobserve } = this.createResizeObserver(wrapper, reSize, true)
-      globalStore.frontModeResizeObserver = { observe, unobserve }
-      observe()
-      this.store.disposers.push(unobserve)
-    }
-
-    store.appendedToPage = true
-  }
-
-  public setVisibleById = (id: string, visible: boolean) => {
-    const data = this.store.frontModeCSS3DObjects[id] ?? this.store.behindModeCSS3DObjects[id]
-    if (!data) return console.error('id not found', id)
-    data.visible = visible
-    if (this.state.visible) {
-      data.css3DObject.visible = visible
-      if (data.mode === 'behind') data.opacityMesh.visible = visible
+      return globalStore.behindModeStore.css3DScene
     }
   }
 
-  public setEnabledById = (id: string, enabled: boolean) => {
-    const data = this.store.frontModeCSS3DObjects[id] ?? this.store.behindModeCSS3DObjects[id]
-    if (!data) return
-    const css3DScene = data.mode === 'front' ? globalStore.frontModeStore?.css3DScene : globalStore.behindModeStore?.css3DScene
-    if (!css3DScene) return
+  public getFrontCSS3DObjectGroup({ addGroupIfNotExists = true } = {}) {
+    const css3DScene = this.getFrontCSS3DScene({ createSceneIfNotExists: addGroupIfNotExists })
+    if (addGroupIfNotExists && css3DScene) {
+      if (!css3DScene.getObjectById(this.store.frontModeGroup.id)) {
+        css3DScene.add(this.store.frontModeGroup)
+      }
+    }
+    return this.store.frontModeGroup
+  }
+
+  public getBehindCSS3DObjectGroup({ addGroupIfNotExists = true } = {}) {
+    const css3DScene = this.getBehindCSS3DScene({ createSceneIfNotExists: addGroupIfNotExists })
+    if (addGroupIfNotExists && css3DScene && this.scene) {
+      const behindModeGroup = this.store.behindModeGroup ?? new CSS3DBehindGroup(this.scene)
+      this.store.behindModeGroup = behindModeGroup
+      if (!css3DScene.getObjectById(behindModeGroup.id)) css3DScene.add(behindModeGroup)
+    }
+    return this.store.behindModeGroup
+  }
+
+  public setVisibleById = (id: number, visible: boolean) => {
+    getCSS3DObjectById(id)?.setVisible(visible)
+  }
+
+  public setEnabledById = (id: number, enabled: boolean) => {
+    const css3DObject = getCSS3DObjectById(id)
+    if (!css3DObject) return
+    const group =
+      css3DObject.mode === 'front'
+        ? this.getFrontCSS3DObjectGroup({ addGroupIfNotExists: false })
+        : this.getBehindCSS3DObjectGroup({ addGroupIfNotExists: false })
+    if (!group) return
     if (enabled) {
-      css3DScene.add(data.css3DObject)
-      if (data.mode === 'behind') data.scene.add(data.opacityMesh)
+      group.add(css3DObject)
     } else {
-      css3DScene.remove(data.css3DObject)
-      if (data.mode === 'behind') data.scene.remove(data.opacityMesh)
+      group.remove(css3DObject)
     }
-    data.enabled = enabled
   }
 
-  private render(camera: THREE.Camera) {
-    const behindModeStore = globalStore.behindModeStore
-    const frontModeStore = globalStore.frontModeStore
-
-    if (behindModeStore && Object.keys(this.store.behindModeCSS3DObjects).length > 0 && !behindModeStore.requestAnimationFrameId) {
-      const renderBehindMode = () => {
-        const requestAnimationFrameId = requestAnimationFrame(renderBehindMode)
-        behindModeStore.requestAnimationFrameId = requestAnimationFrameId
-        behindModeStore.css3DRenderer.render(behindModeStore.css3DScene, camera)
-      }
-      renderBehindMode()
+  public render(camera: THREE.Camera) {
+    if (this.getFrontCSS3DObjectGroup({ addGroupIfNotExists: false }).children.length > 0) {
+      const css3DScene = this.getFrontCSS3DScene({ createSceneIfNotExists: true })
+      if (!css3DScene) return console.error(`${PLUGIN}: css3DScene is required when mode is front`)
+      globalStore.frontModeStore.css3DRenderer.renderEveryFrame(css3DScene, camera)
     }
-    if (frontModeStore && Object.keys(this.store.frontModeCSS3DObjects).length > 0 && !frontModeStore.requestAnimationFrameId) {
-      const renderFrontMode = () => {
-        const requestAnimationFrameId = requestAnimationFrame(renderFrontMode)
-        frontModeStore.requestAnimationFrameId = requestAnimationFrameId
-        frontModeStore.css3DRenderer.render(frontModeStore.css3DScene, camera)
-      }
-      renderFrontMode()
-    }
-    if (Object.keys(this.store.frontModeCSS3DObjects).length === 0) {
-      if (frontModeStore?.requestAnimationFrameId !== undefined) {
-        cancelAnimationFrame(frontModeStore.requestAnimationFrameId)
-        frontModeStore.requestAnimationFrameId = undefined
-      }
-    }
-    if (Object.keys(this.store.behindModeCSS3DObjects).length === 0) {
-      if (behindModeStore?.requestAnimationFrameId !== undefined) {
-        cancelAnimationFrame(behindModeStore.requestAnimationFrameId)
-        behindModeStore.requestAnimationFrameId = undefined
-      }
+    if ((this.getBehindCSS3DObjectGroup({ addGroupIfNotExists: false })?.children.length ?? 0) > 0) {
+      const css3DScene = this.getBehindCSS3DScene({ createSceneIfNotExists: true })
+      if (!css3DScene) return console.error(`${PLUGIN}: css3DScene is required when mode is behind`)
+      globalStore.behindModeStore.css3DRenderer.renderEveryFrame(css3DScene, camera)
     }
   }
 
   private createObject = (
     points: [Vector3, Vector3, Vector3, Vector3],
-    config: {
-      ratio: number
-      dpr: number
-      container: HTMLElement
-      pointerEvents: 'none' | 'auto'
-      mode: 'front' | 'behind'
-    },
+    config: { ratio: number; dpr: number; container: HTMLElement; pointerEvents: 'none' | 'auto'; mode: 'front' | 'behind' },
   ) => {
-    const { ratio, dpr, container, mode, pointerEvents } = config
-
-    const css3DObject = new CSS3DObjectPlus(container, points, ratio, dpr, mode)
-    container.style.pointerEvents = pointerEvents
-    container.classList.add(`${PLUGIN_NAME}__container`)
-    const opacityMesh = mode === 'behind' ? this.createOpacityMesh(css3DObject) : undefined
-    return { css3DObject, opacityMesh }
-  }
-
-  private initGlobalModeStore(mode: 'front'): void
-  private initGlobalModeStore(mode: 'behind', scene: THREE.Scene): void
-  private initGlobalModeStore(mode: Mode, scene?: THREE.Scene) {
-    const frontModeAndFrontModeUnInited = mode === 'front' && !globalStore.frontModeStore
-    const behindModeAndBehindModeUnInited = mode === 'behind' && !globalStore.behindModeStore
-    if (behindModeAndBehindModeUnInited) {
-      globalStore.behindModeStore = { scene: scene!, css3DScene: new THREE.Scene(), css3DRenderer: new CSS3DRenderer() }
-    }
-    if (frontModeAndFrontModeUnInited) {
-      globalStore.frontModeStore = { css3DScene: new THREE.Scene(), css3DRenderer: new CSS3DRenderer() }
-    }
-  }
-
-  /**
-   * @description: 生成透明Mesh
-   */
-  private createOpacityMesh = (css3DObject: CSS3DObjectPlus) => {
-    const { domWidthPx, domHeightPx } = css3DObject
-    const material = new THREE.MeshBasicMaterial({
-      opacity: 0,
-      color: 0x000000,
-      transparent: false,
-      side: THREE.DoubleSide,
-    })
-    const geometry = new THREE.PlaneGeometry(domWidthPx, domHeightPx)
-    const mesh = new THREE.Mesh(geometry, material)
-    mesh.name = pluginFlag('mesh')
-    mesh.position.copy(css3DObject.position)
-    mesh.rotation.copy(css3DObject.rotation)
-    mesh.scale.copy(css3DObject.scale)
-    css3DObject.hooks.on('applyMatrix4', (matrix) => mesh.applyMatrix4(matrix))
-    css3DObject.hooks.on('applyQuaternion', (quaternion) => mesh.applyQuaternion(quaternion))
-    css3DObject.hooks.on('applyScaleMatrix4', (matrix) => mesh.scale.applyMatrix4(matrix))
-    return mesh
+    const css3DObject = new CSS3DObjectPlus({ cornerPoints: points, ...config })
+    css3DObject.element.classList.add(`${PLUGIN_NAME}__container`)
+    css3DObject.element.id = `${PLUGIN_NAME}__container--${css3DObject.uuid}`
+    return css3DObject
   }
 
   private async handleShow() {
-    Object.values(this.store.frontModeCSS3DObjects).forEach((value) => {
-      value.css3DObject.visible = value.visible
-    })
-
-    Object.values(this.store.behindModeCSS3DObjects).forEach((value) => {
-      value.css3DObject.visible = value.visible
-      value.opacityMesh.visible = value.visible
-    })
+    this.store.frontModeGroup.visible = true
+    if (this.store.behindModeGroup) this.store.behindModeGroup.visible = true
   }
 
   private async handleHide() {
-    Object.values(this.store.frontModeCSS3DObjects).forEach((value) => {
-      value.css3DObject.visible = false
-    })
-    Object.values(this.store.behindModeCSS3DObjects).forEach((value) => {
-      value.css3DObject.visible = false
-      value.opacityMesh.visible = false
-    })
+    this.store.frontModeGroup.visible = false
+    if (this.store.behindModeGroup) this.store.behindModeGroup.visible = false
   }
 
   private handleEnable() {
-    Object.values(this.store.frontModeCSS3DObjects).forEach((value) => {
-      if (!value.enabled) return
-      globalStore.frontModeStore?.css3DScene.add(value.css3DObject)
-    })
-    Object.values(this.store.behindModeCSS3DObjects).forEach((value) => {
-      if (!value.enabled) return
-      globalStore.behindModeStore?.css3DScene.add(value.css3DObject)
-      globalStore.behindModeStore?.scene.add(value.opacityMesh)
-    })
+    this.getFrontCSS3DScene()?.add(this.store.frontModeGroup)
+    if (this.store.behindModeGroup) this.getBehindCSS3DScene()?.add(this.store.behindModeGroup)
   }
 
   private handleDisable() {
-    Object.values(this.store.frontModeCSS3DObjects).forEach((value) => {
-      globalStore.frontModeStore?.css3DScene.remove(value.css3DObject)
+    this.store.frontModeGroup.children.forEach((object) => {
+      if (object instanceof CSS3DObject && object.element instanceof Element && object.element.parentNode !== null) {
+        object.element.parentNode.removeChild(object.element)
+      }
     })
-    Object.values(this.store.behindModeCSS3DObjects).forEach((value) => {
-      globalStore.behindModeStore?.css3DScene.remove(value.css3DObject)
-      globalStore.behindModeStore?.scene.remove(value.opacityMesh)
+    this.store.behindModeGroup?.children.forEach((object) => {
+      if (object instanceof CSS3DObject && object.element instanceof Element && object.element.parentNode !== null) {
+        object.element.parentNode.removeChild(object.element)
+      }
     })
+    this.getFrontCSS3DScene()?.remove(this.store.frontModeGroup)
+    if (this.store.behindModeGroup) this.getBehindCSS3DScene()?.remove(this.store.behindModeGroup)
   }
 
-  private createResizeObserver = (element: Element, resizeHandler: (width: number, height: number) => any, fireImmediately = true) => {
-    if (!element) {
-      console.error('createResizeObserver: element is undefined')
-      return { observe: () => {}, unobserve: () => {} }
-    }
-
-    const resizeObserverHandler = () => {
-      /**
-       * 这里evenNumber策略是遇到奇数会加1，在某些浏览器中会触发滚动条显示，导致fiveElement变小，fiveElement变小又触发了这里的resize，宽高变小，滚动条消失，然后又触发resize。。。无限循环
-       * 所以为了规避上面这种情况，evenNumber设置了一个参数，遇到奇数可选择减一
-       */
-      const width = evenNumber(element.clientWidth, { smaller: true })
-      const height = evenNumber(element.clientHeight, { smaller: true })
-      resizeHandler(width, height)
-    }
-
-    if (typeof ResizeObserver === 'undefined' || !ResizeObserver) {
-      console.warn('createResizeObserver: ResizeObserver is undefined')
-      return { observe: () => resizeObserverHandler(), unobserve: () => {} }
-    }
-
-    const observer = new ResizeObserver(resizeObserverHandler)
-    if (fireImmediately) resizeObserverHandler()
-    return {
-      observe: () => observer.observe(element),
-      unobserve: () => observer.unobserve(element),
-    }
-  }
-
-  private disposedErrorLog = () => {
-    console.error(`${PLUGIN} is disposed`)
+  private handleDispose() {
+    this.handleDisable()
   }
 }

@@ -1,16 +1,17 @@
 import { CSS3DObject } from 'three/examples/jsm/renderers/CSS3DRenderer'
 import { Matrix4, Quaternion, Vector3 } from 'three'
-import { evenNumber } from './evenNumber'
-import { centerPoint } from './centerPoint'
-import { Subscribe } from '../../shared-utils/Subscribe'
-import type * as THREE from 'three'
+import { even } from '../even'
+import { centerPoint } from '../centerPoint'
+import { Subscribe } from '../../../shared-utils/Subscribe'
+import * as THREE from 'three'
+import OpacityMesh from './OpacityMesh'
 
 /**
- * @Changelog
- *  - 1.0.1: Fix rotate
- *  - 1.0.2: Add `applyScaleMatrix4` method, Rewrite `applyQuaternion` and `applyMatrix4` method
+ * @changelog
+ *  - 1: Fix rotate
+ *  - 0: Add `applyScaleMatrix4` method, Rewrite `applyQuaternion` and `applyMatrix4` method
  */
-const VERSION = '1.0.2'
+const VERSION = 1
 
 const NAME = `CSS3DObjectPlus@${VERSION}`
 
@@ -27,30 +28,38 @@ export type CSS3DRenderEventMap = {
   applyMatrix4: (matrix: Matrix4) => void
   applyQuaternion: (quaternion: Quaternion) => void
   applyScaleMatrix4: (matrix: Matrix4) => void
-  changeMode: <T extends Mode = Mode>(mode: T, prevMode: Mode, scene: T extends 'behind' ? THREE.Scene : undefined) => void
 }
 
 export class CSS3DObjectPlus<T extends HTMLElement = HTMLElement> extends CSS3DObject {
   public version = VERSION
+  public readonly isCSS3DObjectPlus: true = true
+
+  public container: T
   public width: number
   public height: number
   public domWidthPx: number
   public domHeightPx: number
   public cornerPoints: CornerPoints
-  public ratio: number
-  public container: T
   public centerPosition: Vector3
+  public ratio: number
   public mode: 'front' | 'behind' = 'front'
-  public readonly hooks: Subscribe<CSS3DRenderEventMap> = new Subscribe()
-  public readonly isCSS3DObjectPlus: true = true
 
-  // eslint-disable-next-line max-params
-  public constructor(container: T, cornerPoints: CornerPoints, ratio = DefaultRatio, dpr = 1, mode: Mode = 'front') {
+  public readonly hooks: Subscribe<CSS3DRenderEventMap> = new Subscribe()
+
+  public opacityMesh?: OpacityMesh
+
+  public constructor(params: { container: T; mode?: 'front' | 'behind', cornerPoints: CornerPoints; ratio?: number; dpr?: number; pointerEvents?: 'none' | 'auto' }) {
+    const container = params.container
+    const cornerPoints = params.cornerPoints
+    const ratio = params.ratio ?? DefaultRatio
+    const dpr = params.dpr ?? 1
+    const pointerEvents = params.pointerEvents ?? 'auto'
+
     const realRatio = Math.max(MinRatio, ratio)
     const planeWidth = cornerPoints[0].distanceTo(cornerPoints[1])
     const planeHeight = cornerPoints[1].distanceTo(cornerPoints[2])
-    const domWidthPx = evenNumber((planeWidth / ratio) * dpr)
-    const domHeightPx = evenNumber((planeHeight / ratio) * dpr)
+    const domWidthPx = even((planeWidth / ratio) * dpr)
+    const domHeightPx = even((planeHeight / ratio) * dpr)
     const centerPosition = centerPoint(...cornerPoints)
 
     let css3DObjectElement: HTMLElement
@@ -79,13 +88,17 @@ export class CSS3DObjectPlus<T extends HTMLElement = HTMLElement> extends CSS3DO
     }
 
     super(css3DObjectElement)
+
+    // 注意设置pointerEvents要在super之后，否则会被覆盖
+    container.style.pointerEvents = pointerEvents
+
     this.scale.set(realRatio, realRatio, realRatio)
 
     // set public property
     this.cornerPoints = cornerPoints
     this.ratio = ratio
     this.container = container
-    this.mode = mode
+    if (params.mode) this.mode = params.mode
 
     if (realRatio === ratio) {
       this.width = planeWidth
@@ -123,28 +136,66 @@ export class CSS3DObjectPlus<T extends HTMLElement = HTMLElement> extends CSS3DO
     this.position.copy(centerPosition)
   }
 
-  public changeMode(mode: 'front'): void
-  public changeMode(mode: 'behind', scene: THREE.Scene): void
-  public changeMode(mode: Mode, scene?: THREE.Scene): void {
-    if (mode === this.mode) return
-    const prevMode = this.mode
-    this.mode = mode
-    this.hooks.emit('changeMode', mode, prevMode, scene)
+  public setVisible(visible: boolean) {
+    this.visible = visible
+    if (this.opacityMesh) this.opacityMesh.visible = visible
   }
 
-  public applyScaleMatrix4(matrix: Matrix4) {
-    this.scale.applyMatrix4(matrix)
-    this.hooks.emit('applyScaleMatrix4', matrix)
+  public removeFromParent() {
+    const parent = this.parent
+    if (parent !== null) {
+      parent.remove(this)
+    }
+    this.opacityMesh?.removeFromParent()
+    return this
+  }
+
+  public removeOpacityMesh() {
+    this.opacityMesh?.removeFromParent()
+    this.opacityMesh = undefined
+    return this
+  }
+
+  public dispose() {
+    this.container.remove()
+    this.removeFromParent()
+    this.opacityMesh?.removeFromParent()
+  }
+
+  public getOpacityMesh() {
+    if (this.opacityMesh) return this.opacityMesh
+    else {
+      const opacityMesh = this.createOpacityMesh(this)
+      this.opacityMesh = opacityMesh
+      return opacityMesh
+    }
   }
 
   public applyMatrix4(matrix: Matrix4): void {
     super.applyMatrix4(matrix)
-    this.hooks.emit('applyMatrix4', matrix)
+    this.opacityMesh?.applyMatrix4(matrix)
   }
 
   public applyQuaternion(quaternion: Quaternion) {
     super.applyQuaternion(quaternion)
-    this.hooks.emit('applyQuaternion', quaternion)
+    this.opacityMesh?.applyQuaternion(quaternion)
     return this
+  }
+
+  public applyScaleMatrix4(matrix: Matrix4) {
+    this.scale.applyMatrix4(matrix)
+    this.opacityMesh?.scale.applyMatrix4(matrix)
+  }
+
+  /**
+   * @description: 生成透明Mesh
+   */
+  private createOpacityMesh = (css3DObject: CSS3DObjectPlus) => {
+    const { domWidthPx, domHeightPx } = css3DObject
+    const mesh = new OpacityMesh(domWidthPx, domHeightPx)
+    mesh.position.copy(css3DObject.position)
+    mesh.rotation.copy(css3DObject.rotation)
+    mesh.scale.copy(css3DObject.scale)
+    return mesh
   }
 }

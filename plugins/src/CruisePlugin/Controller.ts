@@ -702,7 +702,6 @@ export default class CruisePluginController extends BasePluginWithData.Controlle
   private async changeMode(data: Partial<State>, duration?: number) {
     if (data.mode && data.mode !== this.five.currentMode) {
       this.privateState.modeChanging = true
-      console.log('this.privateState.modeChanging', this.privateState.modeChanging)
       await this.five.changeMode(data.mode, data, duration)
       this.privateState.modeChanging = false
     }

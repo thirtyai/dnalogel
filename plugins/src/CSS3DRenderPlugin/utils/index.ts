@@ -1,4 +1,4 @@
 export * from './centerPoint'
-export * from './evenNumber'
+export * from './even'
 export * from './random'
 export * from './positionToVector3'

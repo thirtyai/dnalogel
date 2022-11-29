@@ -6,6 +6,7 @@ behindFiveElement.style.top = '0'
 behindFiveElement.style.left = '0'
 behindFiveElement.style.width = '100%'
 behindFiveElement.style.height = '100%'
+behindFiveElement.style.pointerEvents = 'none'
 
 export default function generateBehindFiveElement(five: Five) {
   const element = checkElement(five.getElement()) ?? checkElement(five.getElement()?.parentElement)

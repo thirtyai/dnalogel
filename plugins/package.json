@@ -7,7 +7,7 @@
   "repository": "https://github.com/realsee-developer/dnalogel.git",
   "description": "如视 VR 看房插件合集",
   "private": false,
-  "version": "2.3.1",
+  "version": "2.3.2",
   "license": "SEE LICENSE IN TERMS.txt",
   "scripts": {
     "clean": "rm -rf components dist docs libs types ./vite.config.js.timestamp*",

@@ -111,7 +111,7 @@ export class PanoDoorLabelPluginController extends BasePanoPluginController<Stat
   }
 
   public dispose(): void {
-    if (this.five) {
+    if (this && this.five) {
       this.five.off('wantsToMoveToPano', this.hideAllLabels)
       this.five.off('modelLoaded', this.fixDoorVisibleAndPosition)
       this.five.off('panoArrived', this.fixDoorVisibleAndPosition)

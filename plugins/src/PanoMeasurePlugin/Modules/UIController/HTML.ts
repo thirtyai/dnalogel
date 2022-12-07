@@ -1,4 +1,4 @@
-import { endIconImage, startIconImage } from "./mobileHTML"
+import { endIconImage, startIconImage } from './mobileHTML'
 
 const revokeSvg = `
   <svg class="fpm__revoke-icon" width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
@@ -113,17 +113,17 @@ export default `
     <div class="fpm__other-btn">
       <div class="fpm__other-content fpm__revoke">
         ${revokeSvg}
-        <span class="fpm__text fpm__revoke-text">撤销</span>
+        <span class="fpm__text fpm__revoke-text"></span>
       </div>
     </div>
     <div class="fpm__main fpm__main-btn">
       <div class="fpm__main-icon fpm__main__start"></div>
-      <div class="fpm__main-text fpm__main-btn-text">开始</div>
+      <div class="fpm__main-text fpm__main-btn-text"></div>
     </div>
     <div class="fpm__other-btn">
       <div class="fpm__other-content fpm__exit">
         ${exitSvg}
-        <span class="fpm__text fpm__exit-text">退出</span>
+        <span class="fpm__text fpm__exit-text"></span>
       </div>
     </div>
   </div>

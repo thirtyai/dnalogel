@@ -76,7 +76,7 @@ export default `
   <div class="fpm_operating-space fpm_operating--mobile">
     <div class="fpm__main fpm__main-btn">
       <div class="fpm__main-icon fpm__main__start"></div>
-      <div class="fpm__main-text fpm__main-btn-text">开始</div>
+      <div class="fpm__main-text fpm__main-btn-text"></div>
     </div>
   </div>
 `

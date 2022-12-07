@@ -1,3 +1,4 @@
+import { UIControllerParams } from '.'
 import type MeasureController from '../../Controller'
 import type { PanoMeasurePluginEvent } from '../../typings/event.type'
 import { mainIconStyle, mainItemStyle } from './style'
@@ -5,14 +6,40 @@ export class MainBtnController {
   private container: Element
   private measureController: MeasureController
   private mainElement: ReturnType<MainBtnController['getMainElement']>
+  private _params: UIControllerParams
 
-  constructor(measureController: MeasureController, container: Element) {
+  private _btnTexts = {
+    start: '开始',
+    end: '结束',
+    revoke: '撤销',
+    exit: '退出',
+  }
+
+  public constructor(measureController: MeasureController, container: Element, params: UIControllerParams) {
+    this._params = params
+
+    this._btnTexts = {
+      start: this._params.startButtonText ?? this._btnTexts.start,
+      end: this._params.endButtonText ?? this._btnTexts.end,
+      revoke: this._params.revokeButtonText ?? this._btnTexts.revoke,
+      exit: this._params.exitButtonText ?? this._btnTexts.exit,
+    }
+
     this.measureController = measureController
     this.container = container
     this.mainElement = this.getMainElement()
 
     Object.assign(this.mainElement.mainIcon.style, mainIconStyle)
     Object.assign(this.mainElement.mainItem.style, mainItemStyle)
+
+    const { revokeTextDom, exitTextDom } = this._getTextElement()
+    if (revokeTextDom) {
+      revokeTextDom.innerText = this._btnTexts.revoke
+    }
+    if (exitTextDom) {
+      exitTextDom.innerText = this._btnTexts.exit
+    }
+
     this.change2Add()
 
     this.measureController.hook.on('modeChange', this.modeChangeHandler)
@@ -37,9 +64,18 @@ export class MainBtnController {
     return { mainTextDom, mainItem, mainIcon }
   }
 
+  private _getTextElement() {
+    const revokeTextDom = this.container.querySelector<HTMLSpanElement>('.fpm__revoke-text')
+    const exitTextDom = this.container.querySelector<HTMLSpanElement>('.fpm__exit-text')
+    return { revokeTextDom, exitTextDom }
+  }
+
   private change2Add() {
     const { mainIcon, mainTextDom } = this.mainElement
-    if (mainIcon.className.includes('fpm__main__start')) return
+    if (mainIcon.className.includes('fpm__main__start')) {
+      mainTextDom.innerText = this._btnTexts.start
+      return
+    }
     if (mainIcon.className.includes('fpm__main__end')) {
       mainIcon.style.transform = `scale(0.8)`
       if (mainTextDom.className.includes('fpm__main-text__show')) {
@@ -50,7 +86,7 @@ export class MainBtnController {
       setTimeout(() => {
         mainIcon.classList.replace('fpm__main__end', 'fpm__main__start')
         mainIcon.style.transform = 'scale(1)'
-        mainTextDom.innerText = '开始'
+        mainTextDom.innerText = this._btnTexts.start
         mainTextDom.classList.replace('fpm__main-text__hide', 'fpm__main-text__show')
       }, 200)
     }
@@ -58,7 +94,7 @@ export class MainBtnController {
 
   private change2Done() {
     const { mainTextDom, mainIcon } = this.getMainElement()
-    if (mainTextDom.innerText === '结束') return
+    if (mainTextDom.innerText === this._btnTexts.end) return
     if (mainIcon.className.includes('fpm__main__end')) return
     if (mainIcon.className.includes('fpm__main__start')) {
       mainIcon.style.transform = `scale(0.8)`
@@ -70,7 +106,7 @@ export class MainBtnController {
       setTimeout(() => {
         mainIcon.classList.replace('fpm__main__start', 'fpm__main__end')
         mainIcon.style.transform = 'scale(1)'
-        mainTextDom.innerText = '结束'
+        mainTextDom.innerText = this._btnTexts.end
         mainTextDom.classList.replace('fpm__main-text__hide', 'fpm__main-text__show')
       }, 200)
     }

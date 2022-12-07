@@ -1,13 +1,26 @@
+import { UIControllerParams } from '.'
 import type MeasureController from '../../Controller'
-import type { PanoMeasurePluginEvent } from '../../typings/event.type'
 import { mainIconStyle, mainItemStyle } from './style'
 
-export class mobileMainBtnController {
+export class MobileMainBtnController {
   private container: Element
   private measureController: MeasureController
-  private mainElement: ReturnType<mobileMainBtnController['getMainElement']>
+  private mainElement: ReturnType<MobileMainBtnController['getMainElement']>
+  private _params: UIControllerParams
 
-  public constructor(measureController: MeasureController, container: Element) {
+  private _btnTexts = {
+    start: '开始',
+    end: '结束',
+  }
+
+  public constructor(measureController: MeasureController, container: Element, params: UIControllerParams) {
+    this._params = params
+
+    this._btnTexts = {
+      start: this._params.startButtonText ?? this._btnTexts.start,
+      end: this._params.endButtonText ?? this._btnTexts.end,
+    }
+
     this.measureController = measureController
     this.container = container
     this.mainElement = this.getMainElement()
@@ -34,7 +47,10 @@ export class mobileMainBtnController {
 
   private change2Add() {
     const { mainIcon, mainTextDom } = this.mainElement
-    if (mainIcon.className.includes('fpm__main__start')) return
+    if (mainIcon.className.includes('fpm__main__start')) {
+      mainTextDom.innerText = this._btnTexts.start
+      return
+    }
     if (mainIcon.className.includes('fpm__main__end')) {
       mainIcon.style.transform = `scale(0.8)`
       if (mainTextDom.className.includes('fpm__main-text__show')) {
@@ -45,7 +61,7 @@ export class mobileMainBtnController {
       setTimeout(() => {
         mainIcon.classList.replace('fpm__main__end', 'fpm__main__start')
         mainIcon.style.transform = 'scale(1)'
-        mainTextDom.innerText = '开始'
+        mainTextDom.innerText = this._btnTexts.start
         mainTextDom.classList.replace('fpm__main-text__hide', 'fpm__main-text__show')
       }, 200)
     }
@@ -53,7 +69,7 @@ export class mobileMainBtnController {
 
   private change2Done() {
     const { mainTextDom, mainIcon } = this.mainElement
-    if (mainTextDom.innerText === '结束') return
+    if (mainTextDom.innerText === this._btnTexts.end) return
     if (mainIcon.className.includes('fpm__main__end')) return
     if (mainIcon.className.includes('fpm__main__start')) {
       mainIcon.style.transform = `scale(0.8)`
@@ -65,17 +81,17 @@ export class mobileMainBtnController {
       setTimeout(() => {
         mainIcon.classList.replace('fpm__main__start', 'fpm__main__end')
         mainIcon.style.transform = 'scale(1)'
-        mainTextDom.innerText = '结束'
+        mainTextDom.innerText = this._btnTexts.end
         mainTextDom.classList.replace('fpm__main-text__hide', 'fpm__main-text__show')
       }, 200)
     }
   }
 
   private onClick = () => {
-    if( this.mainElement.mainTextDom.innerText === '开始'){
+    if (this.mainElement.mainTextDom.innerText === (this._params.startButtonText ?? '开始')) {
       this.measureController.hook.emit('willChangeState', 'watching', 'editing')
       this.change2Done()
-    }else{
+    } else {
       this.measureController.hook.emit('willChangeState', 'editing', 'watching')
       this.change2Add()
     }

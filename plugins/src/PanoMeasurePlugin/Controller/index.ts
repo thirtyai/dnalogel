@@ -14,8 +14,8 @@ import { Group } from 'three'
 import { Model } from '../Model'
 import { Five, Subscribe } from '@realsee/five'
 import { getMouseGroup } from '../utils/mouseGroup'
-import { UIController } from '../Modules/UIController'
-import { GuideController } from '../Modules/GuideController'
+import { UIController, UIControllerParams } from '../Modules/UIController'
+import { GuideController, GuideControllerParams } from '../Modules/GuideController'
 import { ShortcutKeyController } from './ShortcutKeyController'
 import RangePieceController from '../Modules/rangePiece'
 
@@ -26,8 +26,8 @@ export type Mode = 'Watch' | 'Edit' | 'Mixed' | 'View'
 export interface PanoMeasureParameterType extends Partial<Config> {
   openParams?: OpenParameter
   magnifierParams?: MagnifierParameter
-  useUIController?: boolean
-  useGuideController?: boolean
+  useUIController?: boolean | UIControllerParams
+  useGuideController?: boolean | GuideControllerParams
   // TODO: 这个参数传递的太恶心了，优化一下
   userDistanceItemCreator?: () => UserDistanceItem
 }
@@ -93,9 +93,21 @@ export default class MeasureController {
       mouseGroup: getMouseGroup({ ...openParams.crossHairParameter }),
       userDistanceItemCreator: this.params.userDistanceItemCreator,
     }
-    if (this.params.useUIController !== false) this.useUIController = new UIController(this, this.controllerParams)
-    if (this.params.useGuideController !== false)
-      this.useGuideController = new GuideController(this, this.controllerParams)
+    if (this.params.useUIController !== false) {
+      const uiControllerParams = {
+        container: this.container,
+        openParams,
+        ...(typeof this.params.useUIController === 'object' ? this.params.useUIController : {}),
+      }
+      this.useUIController = new UIController(this, uiControllerParams)
+    }
+    if (this.params.useGuideController !== false) {
+      const guideControllerParams = {
+        container: this.container,
+        ...(typeof this.params.useGuideController === 'object' ? this.params.useGuideController : {}),
+      }
+      this.useGuideController = new GuideController(this, guideControllerParams)
+    }
   }
 
   public appendTo(parent: HTMLElement) {
@@ -242,8 +254,15 @@ export default class MeasureController {
     if (this.controllerParams.openParams.isMobile === isMobile) return
 
     this.controllerParams.openParams.isMobile = isMobile
-    if (this.params.useUIController !== false) this.useUIController?.dispose()
-    this.useUIController = new UIController(this, this.controllerParams)
+    if (this.params.useUIController !== false) {
+      this.useUIController?.dispose()
+      const uiControllerParams = {
+        container: this.container,
+        openParams: this.controllerParams.openParams,
+        ...(typeof this.params.useUIController === 'object' ? this.params.useUIController : {}),
+      }
+      this.useUIController = new UIController(this, uiControllerParams)
+    }
   }
 
   public changeConfigs(config: Partial<Config>) {

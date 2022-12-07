@@ -1,22 +1,19 @@
 import type MeasureController from '../../Controller'
 import htmlString from './HTML'
 import mobileHTMLString from './mobileHTML'
-import {
-  uiWrapperStyle,
-  operatingSpaceStyle,
-  controllerBackgroundStyle,
-  exitIconStyle,
-  exitItemStyle,
-  textStyle,
-} from './style'
+import { uiWrapperStyle, operatingSpaceStyle, controllerBackgroundStyle, exitIconStyle, exitItemStyle, textStyle } from './style'
 import { MainBtnController } from './MainBtnController'
-import { mobileMainBtnController } from './mobileMainBtnController'
+import { MobileMainBtnController } from './mobileMainBtnController'
 import Revoke from './Revoke'
 import type { OpenParameter } from '../../typings/data'
 
 export interface UIControllerParams {
   container: Element
   openParams?: OpenParameter
+  startButtonText?: string
+  endButtonText?: string
+  revokeButtonText?: string
+  exitButtonText?: string
 }
 
 export type UIMode = 'pc' | 'mobile'
@@ -24,12 +21,14 @@ export type UIMode = 'pc' | 'mobile'
 export class UIController {
   private revoke?: Revoke
   private container: HTMLDivElement
-  private mainController?: MainBtnController | mobileMainBtnController
+  private mainController?: MainBtnController | MobileMainBtnController
   private disposers: (() => unknown)[] = []
   private measureController: MeasureController
   private mode: UIMode
+  private _params: UIControllerParams
 
-  constructor(measureController: MeasureController, params: UIControllerParams) {
+  public constructor(measureController: MeasureController, params: UIControllerParams) {
+    this._params = params
     this.measureController = measureController
     this.mode = params.openParams?.isMobile ? 'mobile' : 'pc'
     this.container = document.createElement('div')
@@ -58,9 +57,9 @@ export class UIController {
     this.container.style.transform = 'translate(0, 0)'
     if (this.mode === 'pc') {
       this.revoke = new Revoke(this.measureController, this.container)
-      this.mainController = new MainBtnController(this.measureController, this.container)
+      this.mainController = new MainBtnController(this.measureController, this.container, this._params)
     } else {
-      this.mainController = new mobileMainBtnController(this.measureController, this.container)
+      this.mainController = new MobileMainBtnController(this.measureController, this.container, this._params)
     }
     this.disposers.push(this.handleExit())
     return this
@@ -87,8 +86,12 @@ export class UIController {
       Object.assign(exitIcon?.style, exitIconStyle)
     }
 
-    const onMouseEnter = () => (exitItem.style.opacity = '1')
-    const onMouseLeave = () => (exitItem.style.opacity = '0.85')
+    const onMouseEnter = () => {
+      exitItem.style.opacity = '1'
+    }
+    const onMouseLeave = () => {
+      exitItem.style.opacity = '0.85'
+    }
     const handleClick = () => {
       this.measureController.disable()
     }

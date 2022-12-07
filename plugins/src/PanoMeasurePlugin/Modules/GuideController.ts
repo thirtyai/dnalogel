@@ -3,6 +3,10 @@ import type { PanoMeasurePluginEvent } from '../typings/event.type'
 
 export interface GuideControllerParams {
   container: Element
+  startTip?: string // 开始的提示
+  endTip?: string // 结束的提示
+  firstPointTip?: string // 首点选择提示
+  nextPointTip?: string // 下一个点位选择提示
 }
 
 export class GuideController {
@@ -10,8 +14,10 @@ export class GuideController {
   private textDom = document.createElement('span')
   private container = document.createElement('div')
   private hasAnchor = false
+  private _params: GuideControllerParams
 
-  constructor(measureController: MeasureController, params: GuideControllerParams) {
+  public constructor(measureController: MeasureController, params: GuideControllerParams) {
+    this._params = params
     this.initDom()
     params.container.append(this.container)
 
@@ -60,7 +66,7 @@ export class GuideController {
     textDom.classList.add('fpm__guide-text')
     textDom.style.color = '#fff'
     textDom.style.fontSize = '20px'
-    textDom.innerText = `点击下方“开始”按钮开始测距`
+    textDom.innerText = this._params.startTip ?? `点击下方“开始”按钮开始测距`
     container.appendChild(textDom)
   }
 
@@ -69,22 +75,22 @@ export class GuideController {
       this.textDom.innerText = ``
       return
     }
-    this.textDom.innerText = `请选择第一个测量点，Esc或单击鼠标右键可取消选择`
+    this.textDom.innerText = this._params.firstPointTip ?? `请选择第一个测量点，Esc或单击鼠标右键可取消选择`
   }
 
   private anchorChange: PanoMeasurePluginEvent['anchorChange'] = (anchor) => {
     if (!this.hasAnchor && !!anchor) {
       this.hasAnchor = true
-      this.textDom.innerText = `选择下一个测量点，Esc或单击鼠标右键取消选择`
+      this.textDom.innerText = this._params.nextPointTip ?? `选择下一个测量点，Esc或单击鼠标右键取消选择`
     } else if (!anchor) {
       this.hasAnchor = false
-      this.textDom.innerText = `请选择第一个测量点，Esc或单击鼠标右键可取消选择`
+      this.textDom.innerText = this._params.firstPointTip ?? `请选择第一个测量点，Esc或单击鼠标右键可取消选择`
     }
   }
 
   private onEditedLineChange: PanoMeasurePluginEvent['editedLineChange'] = (lines) => {
     if (lines.length === 1) {
-      this.textDom.innerText = `可以连续选择测量点，或点击下方“结束”按钮完成测量（Esc取消，Command+S保存）`
+      this.textDom.innerText = this._params.endTip ?? `可以连续选择测量点，或点击下方“结束”按钮完成测量（Esc取消，Command+S保存）`
     }
   }
 }

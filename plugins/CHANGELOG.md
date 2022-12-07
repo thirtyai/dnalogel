@@ -1,11 +1,19 @@
 # CHANGELOG
 
+## 2.3.2
+
+- 1. feat(pano-measure-plugin): 支持传入自定义UI文案
+
 ## 2.2.7
-- 1. fix(build:libs): 修复libs构建产物异常的问题。
+
+- 1. fix(build:libs): 修复 libs 构建产物异常的问题。
+
 ## 2.2.6
+
 - 1. feat(entry-door): 入户门插件支持配置 name。
 
 ## 2.2.1
+
 - 1. fix(floorplan-radar): 修复在 panoArrived 之后 loadData 时初始展示楼层只会是一层的问题。
 
 ## 2.2.0
@@ -18,9 +26,9 @@
 
 ## 2.1.0
 
-- 1. feat: CSS3DRenderPlugin API支持插件3.0标准
-- 2. refactor: CSS3DRenderPlugin 重构，提供不依赖Five的内部类
-- 3. fix:  CSS3DRenderPlugin 修复在部分情况下，CSS3DDom最终渲染结果与传入的四个点的朝向可能不一致的情况
+- 1. feat: CSS3DRenderPlugin API 支持插件 3.0 标准
+- 2. refactor: CSS3DRenderPlugin 重构，提供不依赖 Five 的内部类
+- 3. fix: CSS3DRenderPlugin 修复在部分情况下，CSS3DDom 最终渲染结果与传入的四个点的朝向可能不一致的情况
 - 4. feat: ModelTVVideoPlugin 视频点击行为由 「静音播放/不静音播放」 改为 「播放/暂停」，且在暂停时显示播放按钮
 - 5. feat: 导出 Util
 
@@ -49,11 +57,11 @@
 
 ## 2.0.0-alpha.57
 
-- 1.fix: PanoRulerPlugin 部分数据情况下 element 未 display: none问题。
+- 1.fix: PanoRulerPlugin 部分数据情况下 element 未 display: none 问题。
 
 ## 2.0.0-alpha.56
 
-- 1.fix: PanoRulerPlugin off全量事件监听。
+- 1.fix: PanoRulerPlugin off 全量事件监听。
 
 ## 2.0.0-alpha.55
 
@@ -74,12 +82,12 @@
 
 ## 2.0.0-alpha.42
 
-- 1.fix: PanoCompassPlugin未完全dispose导致切换VR重新加载数据出现异常。
-- 2.fix: PanoCompassPlugin在five切换全景与模型，入户门与分间指向错位的问题。
+- 1.fix: PanoCompassPlugin 未完全 dispose 导致切换 VR 重新加载数据出现异常。
+- 2.fix: PanoCompassPlugin 在 five 切换全景与模型，入户门与分间指向错位的问题。
 
 ## 2.0.0-alpha.41
 
-- 1.feat: 40版本漏发。
+- 1.feat: 40 版本漏发。
 
 ## 2.0.0-alpha.40
 
@@ -99,9 +107,9 @@
 
 ## 2.0.0-alpha.36
 
-- 1.style:    PanoMeasurePlugin pc端UI优化
-- 2.style:    PanoMeasurePlugin准心优化，支持是否展示法向量和小球颜色可配置
-- 3.fix:      修复 ResizeObserver 使用。
+- 1.style: PanoMeasurePlugin pc 端 UI 优化
+- 2.style: PanoMeasurePlugin 准心优化，支持是否展示法向量和小球颜色可配置
+- 3.fix: 修复 ResizeObserver 使用。
 - 4.refactor: 参考 plugins/src/floorplan/CHANGELOG.md v1.0.0
 
 ## 2.0.0-beta.36
@@ -110,9 +118,9 @@
 
 ## 2.0.0-alpha.35
 
-- 1.style: PanoSpatialTagPlugin标签样式兼容, 标签阴影背景自适应；
-- 2.feat: PanoSpatialTagPlugin开放可见距离配置参数，此功能不保证最佳UI效果）;
-- 3.refactor: PanoSpatialTagPlugin更新中心点位置及事件监听。
+- 1.style: PanoSpatialTagPlugin 标签样式兼容, 标签阴影背景自适应；
+- 2.feat: PanoSpatialTagPlugin 开放可见距离配置参数，此功能不保证最佳 UI 效果）;
+- 3.refactor: PanoSpatialTagPlugin 更新中心点位置及事件监听。
 
 ## 2.0.0-alpha.34
 
@@ -121,11 +129,11 @@
 ## 2.0.0-alpha.33
 
 - 1.fix: Floorplan Plugins Compass & ModelChassisCompassPlugin 修复对 north_rad 为 0 的处理
-- 2.fix: panospatialtagplugin 兼容nextjs出现的text样式问题
+- 2.fix: panospatialtagplugin 兼容 nextjs 出现的 text 样式问题
 
 ## 2.0.0-alpha.32
 
-- 1.feat: PanoRulerPlugin 修改标尺隐藏策略，线长小于0.3m隐藏；
+- 1.feat: PanoRulerPlugin 修改标尺隐藏策略，线长小于 0.3m 隐藏；
 - 2.fix: TopViewFloorplanPlugin & ModelFloorplanPlugin wrapper pointer-events: none。
 
 ## 2.0.0-alpha.31
@@ -134,8 +142,8 @@
 
 ## 2.0.0-alpha.30
 
-- 1.feat: PanoMeasurePlugin 新增移动端UI交互模式
-- 2.feat: PanoMeasurePlugin 点线、标签气泡、删除按钮、三维坐标系UI交互优化
+- 1.feat: PanoMeasurePlugin 新增移动端 UI 交互模式
+- 2.feat: PanoMeasurePlugin 点线、标签气泡、删除按钮、三维坐标系 UI 交互优化
 - 3.feat: PanoMeasurePlugin 优化放大镜功能，支持可拖拽，新增放大镜开放参数
 - 4.fix: TopviewFloorplanPlugin 兼容全局 text-align 使用
 - 5.fix: 新增 ItemLabelPlugin 内测版
@@ -185,7 +193,7 @@
 ## 2.0.0-alpha.19
 
 - 1.fix: 修复在模型中切换全部楼层，切换回户型图，展示的是上一次展示时的楼层；
-- 2.fix: 修复户型图界面切换楼层时，图片与SVG渲染有时间差导致闪烁的问题；
+- 2.fix: 修复户型图界面切换楼层时，图片与 SVG 渲染有时间差导致闪烁的问题；
 - 3.feat: TopviewFloorplanPlugin 插件支持放大缩小；
 - 4.feat: ModelFloorplanPlugin 插件，autoShowEnable 和 hoverEnable 能同时支持；
 - 5.chore: 设置 tsconfig.json importsNotUsedAsValues 为 error，在引用类型时，必须显示写为 import type。

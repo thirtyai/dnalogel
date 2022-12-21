@@ -33,7 +33,7 @@
         if (item.startsWith(emojiFlag)) return result.push(item.slice(emojiFlag.length))
         else return result.push(...item.split(''))
       })
-    return result.filter(Boolean)
+    return result
   })()
 
   function onUnfoldedUpdate(unfolded: boolean) {
@@ -70,7 +70,7 @@
      * @member delay  动画开始的延时是当前元素的索引 index * 50ms
      */
     openAnimeIns = anime({
-      targets: spanEleList.filter(notNil).slice(0, firstLineLastIndex),
+      targets: spanEleList.slice(0, firstLineLastIndex).filter(notNil),
       autoplay: false,
       duration: 400,
       scale: [0.7, 1],
@@ -95,7 +95,6 @@
 
 <style>
   .text-char {
-    display: inline-block;
     text-shadow: 2px 0px 8px rgba(0, 0, 0, 0.15);
   }
 </style>

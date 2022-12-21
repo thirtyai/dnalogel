@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.3.4
+
+- 1. fix(pano-tag-plugin): 修复空格不展示。
+
 ## 2.3.2
 
 - 1. feat(pano-measure-plugin): 支持传入自定义UI文案

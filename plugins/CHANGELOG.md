@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.3.5
+
+- 1. feat(model-view-plugin): 支持动态 enable 和 disable。
+
 ## 2.3.4
 
 - 1. fix(pano-tag-plugin): 修复空格不展示。

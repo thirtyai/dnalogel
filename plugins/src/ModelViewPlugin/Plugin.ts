@@ -10,6 +10,12 @@ export interface Config {
 }
 
 export interface ModelViewPluginExportType {
+  enable: () => void
+
+  disable: () => void
+
+  getCurrentState: () => { enabled: boolean }
+
   appendTo: (element: HTMLElement, size?: { width?: number; height?: number }) => void
 
   refresh: (size?: { width?: number; height?: number }) => void
@@ -19,16 +25,19 @@ export interface ModelViewPluginExportType {
 
 export interface ModelViewPluginParameterType {
   config: Config
+  initialState: { enabled: boolean }
 }
 
 /**
  * Five 模型插件
  * @template ExportType 导出方法
  */
-export const ModelViewPlugin: FivePlugin<
-  PartialDeep<ModelViewPluginParameterType> | undefined,
-  ModelViewPluginExportType
-> = (five: Five, params) => {
+export const ModelViewPlugin: FivePlugin<PartialDeep<ModelViewPluginParameterType> | undefined, ModelViewPluginExportType> = (
+  five: Five,
+  params,
+) => {
+  let enabled = params?.initialState?.enabled ?? true
+  let hasModelLoaded = false
   let needsRender = true
   let renderer: THREE.WebGLRenderer | null = null
 
@@ -64,6 +73,41 @@ export const ModelViewPlugin: FivePlugin<
 
   scene.add(model)
 
+  const loadModel = () => {
+    if (hasModelLoaded) return
+    distance = getDistanceFromModel(five.model, camera.fov, camera.aspect)
+    offset = five.model.bounding.getCenter(new THREE.Vector3())
+    scene.remove(model)
+    model = cloneModel(five.model)
+    scene.add(model)
+    hasModelLoaded = true
+    update()
+    function cloneMaterial(_material: THREE.ShaderMaterial) {
+      const material = _material.clone()
+      material.uniforms.modelAlpha.value = 1
+      if (material.uniforms.map.value) {
+        material.uniforms.map.value.needsUpdate = true
+      }
+      return material
+    }
+
+    function cloneModel(model: THREE.Object3D) {
+      if (model instanceof THREE.Mesh) {
+        const geometry = model.geometry
+        const material = Array.isArray(model.material) ? model.material.map(cloneMaterial) : cloneMaterial(model.material)
+        return new THREE.Mesh(geometry, material)
+      } else if (model instanceof THREE.Group) {
+        const group = new THREE.Group()
+        model.children.forEach((object) => group.add(cloneModel(object)))
+        return group
+      } else {
+        const object3D = new THREE.Object3D()
+        model.children.forEach((object) => object3D.add(cloneModel(object)))
+        return object3D
+      }
+    }
+  }
+
   const initRendererIfNeeds = () => {
     if (!five.renderer) return
     if (!renderer) {
@@ -86,43 +130,37 @@ export const ModelViewPlugin: FivePlugin<
     scene.remove(model)
     model = new THREE.Object3D()
     scene.add(model)
+    hasModelLoaded = false
     update()
   }
 
   const handleModelLoaded = () => {
-    distance = getDistanceFromModel(five.model, camera.fov, camera.aspect)
-    offset = five.model.bounding.getCenter(new THREE.Vector3())
-    function cloneMaterial(_material: THREE.ShaderMaterial) {
-      const material = _material.clone()
-      material.uniforms.modelAlpha.value = 1
-      if (material.uniforms.map.value) {
-        material.uniforms.map.value.needsUpdate = true
-      }
-      return material
+    if (!enabled) return
+    if (hasModelLoaded) return
+    loadModel()
+  }
+
+  const enable = () => {
+    if (enabled) return
+
+    enabled = true
+    scene.add(model)
+
+    if (!hasModelLoaded && five.model.loaded) {
+      loadModel()
     }
 
-    function cloneModel(model: THREE.Object3D) {
-      if (model instanceof THREE.Mesh) {
-        const geometry = model.geometry
-        const material = Array.isArray(model.material)
-          ? model.material.map(cloneMaterial)
-          : cloneMaterial(model.material)
-        return new THREE.Mesh(geometry, material)
-      } else if (model instanceof THREE.Group) {
-        const group = new THREE.Group()
-        model.children.forEach((object) => group.add(cloneModel(object)))
-        return group
-      } else {
-        const object3D = new THREE.Object3D()
-        model.children.forEach((object) => object3D.add(cloneModel(object)))
-        return object3D
-      }
-    }
+    update()
+  }
+
+  const disable = () => {
+    if (!enabled) return
 
     scene.remove(model)
-    model = cloneModel(five.model)
-    scene.add(model)
-    update()
+    needsRender = true
+    render()
+
+    enabled = false
   }
 
   const appendTo = (element: HTMLElement, size: { width?: number; height?: number } = {}) => {
@@ -131,12 +169,7 @@ export const ModelViewPlugin: FivePlugin<
     element.appendChild(renderer.domElement)
     refresh(size)
     const positionType = window.getComputedStyle(element).position
-    if (
-      positionType !== 'relative' &&
-      positionType !== 'absolute' &&
-      positionType !== 'fixed' &&
-      positionType !== 'sticky'
-    )
+    if (positionType !== 'relative' && positionType !== 'absolute' && positionType !== 'fixed' && positionType !== 'sticky')
       element.style.position = 'relative'
   }
 
@@ -177,6 +210,7 @@ export const ModelViewPlugin: FivePlugin<
   }
 
   const update = () => {
+    if (!enabled) return
     if (!distance || !offset) return
     const pose = five.getPose()
     pose.fov = camera.fov
@@ -191,6 +225,7 @@ export const ModelViewPlugin: FivePlugin<
   }
 
   const render = () => {
+    if (!enabled) return
     if (needsRender !== true) return
     if (!renderer) return
     if (!renderer.domElement.parentNode) return
@@ -210,6 +245,10 @@ export const ModelViewPlugin: FivePlugin<
     update()
   }
 
+  const getCurrentState = () => ({
+    enabled,
+  })
+
   Object.assign(window, { camera })
 
   five.on('modelLoaded', handleModelLoaded)
@@ -219,7 +258,7 @@ export const ModelViewPlugin: FivePlugin<
   five.on('renderFrame', render)
   five.on('cameraPositionUpdate', update)
 
-  return { appendTo, refresh, changeConfigs }
+  return { appendTo, refresh, changeConfigs, enable, disable, getCurrentState }
 }
 
 export default ModelViewPlugin

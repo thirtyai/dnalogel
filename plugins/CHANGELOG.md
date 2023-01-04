@@ -1,4 +1,7 @@
 # CHANGELOG
+## 2.3.6
+
+- 1. feat(CruisePlugin): load 添加参数 moveToFirstPanoDuration，可指定移动到漫游初始点时的速度。
 
 ## 2.3.5
 

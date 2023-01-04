@@ -75,6 +75,7 @@ export default class CruisePluginController extends BasePluginWithData.Controlle
     disposers: (() => void)[]
     playId?: string
     moveToFirstPanoEffect?: MoveEffect
+    moveToFirstPanoDuration?: number
     modeChanging?: boolean
   } = {
     playing: false,
@@ -302,8 +303,9 @@ export default class CruisePluginController extends BasePluginWithData.Controlle
       }
     } else if (data.panoIndexList) {
       let keyframes: Omit<CruiseKeyframe, 'index' | 'id'>[] = []
-      const { moveEffect, moveToFirstPanoEffect } = data
+      const { moveEffect, moveToFirstPanoEffect, moveToFirstPanoDuration } = data
       this.privateState.moveToFirstPanoEffect = moveToFirstPanoEffect
+      this.privateState.moveToFirstPanoDuration = moveToFirstPanoDuration
       data.panoIndexList
         // .filter((panoIndex, index) => panoIndex !== data.panoIndexList[index - 1]) // remove the repeat panoIndex
         .forEach((panoIndex, index) => {
@@ -398,7 +400,7 @@ export default class CruisePluginController extends BasePluginWithData.Controlle
       hooks.emit('play', { userAction: options?.userAction ?? true })
     }
 
-    let playedFirstKeyframe = false
+    let firstKeyframeWasPlayed = false
 
     const getPlayFromIndex = async () => {
       // play from index
@@ -409,13 +411,17 @@ export default class CruisePluginController extends BasePluginWithData.Controlle
       else if (pauseData?.keyframeId) {
         const pausedKeyframe = this.data?.keyframes.find((keyframe) => keyframe.id === pauseData.keyframeId)
         // restore paused state
-        if (pauseData?.fiveState) await this.move(pauseData.fiveState, { moveEffect: privateState.moveToFirstPanoEffect })
+        if (pauseData?.fiveState)
+          await this.move(pauseData.fiveState, {
+            moveEffect: privateState.moveToFirstPanoEffect,
+            duration: privateState.moveToFirstPanoDuration,
+          })
         if (pausedKeyframe) {
           if (pausedKeyframe.data.effect === 'Move') return pausedKeyframe.index
           else if (pausedKeyframe.data.effect === 'Rotate') {
             const duration = pauseData.duration !== undefined ? pauseData.duration * (1 - pauseData.playedProgress) : undefined
             await this.playKeyframe(pausedKeyframe, { duration })
-            playedFirstKeyframe = true
+            firstKeyframeWasPlayed = true
             // playFromIndex += 1 cause played last part of paused keyframe
             return pausedKeyframe.index + 1
           }
@@ -437,11 +443,14 @@ export default class CruisePluginController extends BasePluginWithData.Controlle
       try {
         hooks.emit('playIndexChange', keyframe.index, keyframe)
         await this.playKeyframe(keyframe, {
-          moveEffect: playedFirstKeyframe === false ? privateState.moveToFirstPanoEffect : undefined,
-          duration: 800,
+          moveEffect: firstKeyframeWasPlayed === false ? privateState.moveToFirstPanoEffect : undefined,
+          duration:
+            firstKeyframeWasPlayed === false && typeof privateState.moveToFirstPanoDuration === 'number'
+              ? privateState.moveToFirstPanoDuration
+              : 800,
         })
         if (keyframe.stay) await sleep(keyframe.stay)
-        if (playedFirstKeyframe === false) playedFirstKeyframe = true
+        if (firstKeyframeWasPlayed === false) firstKeyframeWasPlayed = true
       } catch (error) {
         return Promise.resolve('broke')
         // if think the play be interupted by five gesture is an error, return Promise.reject(error)
@@ -507,7 +516,7 @@ export default class CruisePluginController extends BasePluginWithData.Controlle
    */
   private async getPlayPromise(keyframe: CruiseKeyframe, params?: { duration?: number; moveEffect?: MoveEffect }) {
     const data = keyframe.data
-    const duration =
+    params.duration =
       params?.duration ?? (keyframe.start !== undefined && keyframe.end !== undefined ? keyframe.end - keyframe.start : undefined)
     if (!data) return
     return new Promise<void>((resolve, reject) => {
@@ -585,15 +594,14 @@ export default class CruisePluginController extends BasePluginWithData.Controlle
     } else if (data.panoIndex && data.panoIndex !== this.five.panoIndex) {
       return await this.changePano(data, params)
     }
-    await this.updateCamera(data, params?.duration)
+    await this.updateCamera(data, params)
   }
 
   /**
    * @description Update five camera
    */
-  private async updateCamera(data: Partial<Omit<Pose, 'offset'>> & { rotateSpeed?: number }, paramsDuration = 800) {
+  private async updateCamera(data: Partial<Omit<Pose, 'offset'>> & { rotateSpeed?: number }, params?: { duration?: number }) {
     const { five, privateState, state } = this
-    let originDuration = paramsDuration
     const speed = (() => {
       const speedConfig = state.config?.speedConfig
       const speedValue = data.rotateSpeed ?? speedConfig?.rotateSpeed
@@ -602,20 +610,24 @@ export default class CruisePluginController extends BasePluginWithData.Controlle
         return speedConfig.rotateSpeedUnit === 'rad/ms' ? speedValue : speedValue / 1000
       }
     })()
-    if (speed) {
-      const coordinates1 = this.five.getCurrentState()
-      const coordinates2 = data as any
-      const angle = coordinatesAngle(coordinates1, coordinates2)
-      originDuration = angle / speed
-    }
+    const duration = (() => {
+      if (params.duration) return params.duration
+      if (speed) {
+        const coordinates1 = this.five.getCurrentState()
+        const coordinates2 = data as any
+        const angle = coordinatesAngle(coordinates1, coordinates2)
+        return angle / speed
+      }
+      return 800
+    })()
 
-    if (privateState.currentPlayKeyframe) privateState.currentPlayKeyframe.originDuration = originDuration
+    if (privateState.currentPlayKeyframe) privateState.currentPlayKeyframe.originDuration = duration
 
-    const duration = this.getSpeededDuration(originDuration)
+    const _duration = this.getSpeededDuration(duration)
 
     return new Promise<void>((resolve) => {
-      safeCall(() => five.updateCamera(data, duration))
-      setTimeout(() => resolve(), duration)
+      safeCall(() => five.updateCamera(data, _duration))
+      setTimeout(() => resolve(), _duration)
     })
   }
 
@@ -626,10 +638,8 @@ export default class CruisePluginController extends BasePluginWithData.Controlle
     const { five, privateState, state } = this
     if (typeof data.panoIndex !== 'number') return
     if (data.panoIndex === five.panoIndex) return
-    const mode = five.getCurrentState().mode
     const willChangeMode = five.getCurrentState().mode !== 'Panorama'
     if (willChangeMode) this.privateState.modeChanging = true
-    let originDuration = params?.duration ?? 800
     const speed = (() => {
       const speedConfig = state.config?.speedConfig
       const speedValue = data.moveSpeed ?? speedConfig?.moveSpeed
@@ -638,21 +648,23 @@ export default class CruisePluginController extends BasePluginWithData.Controlle
         return speedConfig.moveSpeedUnit === 'm/ms' ? speedValue : speedValue / 1000
       }
     })()
-    if (speed && typeof five.panoIndex === 'number' && typeof data.panoIndex === 'number') {
-      const postion1 = five.work.observers[five.panoIndex]!.position
-      const postion2 = five.work.observers[data.panoIndex]!.position
-      const distance = postion1.distanceTo(postion2)
-      originDuration = distance / speed
-    }
-    if (privateState.currentPlayKeyframe) privateState.currentPlayKeyframe.originDuration = originDuration
-    const duration = this.getSpeededDuration(originDuration)
-
+    const duration = (() => {
+      if (params?.duration) return params.duration
+      if (speed && typeof five.panoIndex === 'number' && typeof data.panoIndex === 'number') {
+        const postion1 = five.work.observers[five.panoIndex]!.position
+        const postion2 = five.work.observers[data.panoIndex]!.position
+        const distance = postion1.distanceTo(postion2)
+        return distance / speed
+      }
+      return 800
+    })()
+    if (privateState.currentPlayKeyframe) privateState.currentPlayKeyframe.originDuration = duration
     await new Promise<void>((resolve) => {
       five.moveToPano(data.panoIndex!, {
         latitude: data.latitude,
         longitude: data.longitude,
         fov: data.fov,
-        duration,
+        duration: this.getSpeededDuration(duration),
         effect: params?.moveEffect ?? this.state.config?.moveEffect ?? data.moveEffect,
         moveCancelCallback: () => resolve(),
         moveEndCallback: () => resolve(),

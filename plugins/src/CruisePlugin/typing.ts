@@ -52,6 +52,8 @@ export interface PluginServerData extends BasePluginWithData.ServerData {
         /** for ts check, no care */
         moveToFirstPanoEffect?: undefined
         /** for ts check, no care */
+        moveToFirstPanoDuration?: undefined
+        /** for ts check, no care */
         stay?: undefined
       }
     | {
@@ -61,6 +63,8 @@ export interface PluginServerData extends BasePluginWithData.ServerData {
         moveEffect?: MoveEffect
         /** 到第一个点的走点动画 / 续播到暂停处的走点动画 */
         moveToFirstPanoEffect?: MoveEffect
+        /** 到第一个点的走点时长 / 续播到暂停处的走点时长 */
+        moveToFirstPanoDuration?: number
         /** 漫游方式：justMove 为移动到指定点位，且朝向为下一个点的朝向；moveAndRotate 为先移动到指定点位且朝向不变，然后旋转到下一个点的朝向 */
         moveType?: 'justMove' | 'moveAndRotate'
         /** 停留时长 */

@@ -1,4 +1,8 @@
 # CHANGELOG
+## 2.3.8
+
+- 1. feat(PanoTagPlugin): tag dom 添加 `data-content-type={tag.contentType}` 用来标识标签的 contentType 
+
 ## 2.3.6
 
 - 1. feat(CruisePlugin): load 添加参数 moveToFirstPanoDuration，可指定移动到漫游初始点时的速度。

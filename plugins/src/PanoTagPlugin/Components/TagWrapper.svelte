@@ -38,7 +38,16 @@
   }
 </script>
 
-<div class="wrapper" class:hide class:unfolded style:left style:top style:z-index={zIndex} data-id={tag.id}>
+<div
+  class="wrapper"
+  data-content-type={tag.contentType}
+  class:hide
+  class:unfolded
+  style:left
+  style:top
+  style:z-index={zIndex}
+  data-id={tag.id}
+>
   {#if tag.dimensionType === DimensionType.Two}
     <TagContent {mediaStore} {withAnimation} tag={noTypecheck(tag)} {hooks} {state} {temporaryState} />
   {/if}
